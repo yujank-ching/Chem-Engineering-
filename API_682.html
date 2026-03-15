@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>API 682 — Engineering Command Center | Yujank</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+/* Light palette */
+--bg:#f0f4f8;--bg2:#ffffff;--bg3:#f5f7fa;--bg4:#edf0f5;
+--c1:#1a6bbd;--c2:#1557a0;--amber:#b45309;--green:#15803d;
+--red:#b91c1c;--purple:#7c3aed;--orange:#c2410c;--pink:#be185d;
+--text:#0f172a;--t2:#334155;--t3:#64748b;--t4:#94a3b8;
+--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--hd:'Sora',sans-serif;
+--br:rgba(15,23,42,0.1);--br2:rgba(26,107,189,0.35);
+--shadow:0 1px 3px rgba(15,23,42,0.08),0 1px 2px rgba(15,23,42,0.05);
+--shadow-md:0 4px 12px rgba(15,23,42,0.1),0 2px 4px rgba(15,23,42,0.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;font-size:15px;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+background:
+  radial-gradient(ellipse 60% 40% at 10% 10%,rgba(26,107,189,0.05),transparent 55%),
+  radial-gradient(ellipse 50% 35% at 90% 85%,rgba(21,128,61,0.04),transparent 50%),
+  linear-gradient(rgba(26,107,189,0.025) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(26,107,189,0.025) 1px,transparent 1px);
+background-size:auto,auto,52px 52px,52px 52px;}
+body::after{display:none}
+
+/* WATERMARK */
+#wm{position:fixed;bottom:16px;right:20px;z-index:9999;pointer-events:none;
+font-family:var(--hd);font-size:10px;font-weight:700;letter-spacing:4px;
+color:rgba(26,107,189,0.28);text-transform:uppercase;padding:4px 12px;
+border:1px solid rgba(26,107,189,0.18);border-radius:4px;
+animation:wmbreathe 4s ease-in-out infinite;}
+@keyframes wmbreathe{0%,100%{opacity:.6}50%{opacity:1}}
+#wm::before{content:'⬡ ';}
+
+/* CORNERS */
+.crn{position:fixed;width:28px;height:28px;z-index:9998;pointer-events:none;}
+.crn::before,.crn::after{content:'';position:absolute;background:var(--c1);}
+.crn::before{width:100%;height:2px;top:0;}
+.crn::after{width:2px;height:100%;top:0;}
+.c-tl{top:8px;left:8px}.c-tr{top:8px;right:8px;transform:scaleX(-1)}
+.c-bl{bottom:8px;left:8px;transform:scaleY(-1)}.c-br{bottom:8px;right:8px;transform:scale(-1)}
+
+/* APP */
+.app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;padding:0 22px;height:56px;
+border-bottom:1px solid var(--br);background:rgba(255,255,255,0.96);
+backdrop-filter:blur(14px);position:sticky;top:0;z-index:200;flex-shrink:0;
+box-shadow:var(--shadow);}
+.tb-logo{display:flex;align-items:center;gap:11px;margin-right:30px}
+.tb-hex svg{width:32px;height:32px}
+.tb-hex polygon{fill:rgba(26,107,189,.08);stroke:var(--c1);stroke-width:1.8}
+.logo-nm{font-family:var(--hd);font-size:17px;font-weight:800;color:var(--c1);letter-spacing:1px;}
+.logo-sb{font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:1.5px;display:block;margin-top:-1px}
+.tb-nav{display:flex;gap:2px;flex:1}
+.tnav{font-family:var(--mono);font-size:10px;font-weight:500;padding:7px 16px;background:none;border:none;
+border-bottom:2px solid transparent;color:var(--t3);cursor:pointer;letter-spacing:1px;
+text-transform:uppercase;transition:all .18s;height:56px;margin-bottom:-1px;white-space:nowrap}
+.tnav:hover{color:var(--text);border-bottom-color:rgba(26,107,189,.4)}
+.tnav.active{color:var(--c1);border-bottom-color:var(--c1);background:rgba(26,107,189,.05)}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 2px rgba(21,128,61,.2);animation:sdot 2s ease-in-out infinite}
+@keyframes sdot{0%,100%{opacity:1}50%{opacity:.4}}
+.stxt{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--green);letter-spacing:1px}
+.clk{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--t3);min-width:70px;text-align:right}
+
+/* TICKER */
+.ticker{background:var(--bg4);border-bottom:1px solid var(--br);height:26px;overflow:hidden;flex-shrink:0}
+.ticker-tr{display:flex;align-items:center;height:100%;white-space:nowrap;animation:tkscroll 45s linear infinite}
+.ti{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--t3);letter-spacing:.5px;padding:0 34px}
+.ti b{color:var(--c1);font-weight:500}
+@keyframes tkscroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* CONTENT */
+.content{flex:1;padding:18px 22px 32px}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block;animation:pgIn .3s ease}
+@keyframes pgIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* PANELS */
+.panel{background:var(--bg2);border:1px solid var(--br);border-radius:8px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,transparent,var(--c1),transparent);opacity:.5}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;border-bottom:1px solid var(--br);background:var(--bg3);}
+.ph-title{font-family:var(--hd);font-size:10px;font-weight:700;color:var(--c1);letter-spacing:1.5px;text-transform:uppercase}
+.ph-badge{font-family:var(--mono);font-size:8px;font-weight:500;padding:3px 8px;border:1px solid var(--br2);color:var(--c2);border-radius:4px;letter-spacing:.5px;background:rgba(26,107,189,.06)}
+.ph-live{font-family:var(--mono);font-size:8px;font-weight:500;color:var(--green);letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.ph-live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 2px rgba(21,128,61,.2);animation:sdot 1.5s ease-in-out infinite}
+
+/* ═══ DASHBOARD ═══ */
+.dash-layout{display:grid;grid-template-columns:256px 1fr 248px;gap:14px;align-items:start}
+.mrow{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:14px}
+.mc{background:var(--bg2);border:1px solid var(--br);border-radius:8px;padding:12px 14px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+.mc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 8px 8px}
+.mc-lbl{font-family:var(--mono);font-size:8px;font-weight:500;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.mc-val{font-family:var(--hd);font-size:20px;font-weight:800;line-height:1}
+.mc-sub{font-family:var(--mono);font-size:8px;color:var(--t4);margin-top:3px}
+
+/* PLAN LIST */
+.plist{max-height:70vh;overflow-y:auto}
+.plist::-webkit-scrollbar{width:3px}
+.plist::-webkit-scrollbar-thumb{background:rgba(26,107,189,.25);border-radius:2px}
+.pglbl{padding:7px 15px 4px;font-family:var(--mono);font-size:8px;font-weight:500;color:var(--t4);
+letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--br);background:var(--bg3)}
+.pitem{display:flex;align-items:center;gap:9px;padding:8px 15px;cursor:pointer;
+transition:all .12s;border-left:3px solid transparent}
+.pitem:hover{background:rgba(26,107,189,.04);border-left-color:rgba(26,107,189,.3)}
+.pitem.active{background:rgba(26,107,189,.08);border-left-color:var(--c1)}
+.pitem.active .pid{color:var(--c1)}
+.pitem.active .pnm{color:var(--text);font-weight:600}
+.pid{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--t3);min-width:36px}
+.pnm{font-size:12px;font-weight:500;color:var(--t2);flex:1}
+.pdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* CENTER COL */
+.ccol{display:flex;flex-direction:column;gap:14px}
+
+/* MAIN CANVAS — keep dark for contrast */
+.pump-wrap{position:relative;background:#020b18;overflow:hidden;border-radius:0 0 6px 6px}
+#MC{display:block;width:100%;aspect-ratio:16/7}
+.chud{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}
+.hud-t{display:flex;justify-content:space-between;padding:10px 14px}
+.hud-tag{font-family:var(--mono);font-size:8px;font-weight:500;color:#7ecfff;opacity:.7;letter-spacing:1.5px}
+.hud-b{background:linear-gradient(transparent,rgba(2,11,24,.92));padding:14px 16px 12px;
+display:flex;align-items:flex-end;justify-content:space-between}
+.hb-pnum{font-family:var(--hd);font-size:26px;font-weight:800;color:#7ecfff;line-height:1;}
+.hb-pname{font-family:var(--mono);font-size:9px;font-weight:500;color:#5a9ec8;margin-top:3px;letter-spacing:1px}
+.hb-parr{font-family:var(--mono);font-size:8px;color:#e0a020;margin-top:2px;font-weight:500}
+.hb-inds{display:flex;gap:12px;align-items:flex-end}
+.hbi{text-align:center}
+.hbi-v{font-family:var(--hd);font-size:12px;font-weight:700}
+.hbi-l{font-family:var(--mono);font-size:7px;color:#4a7a9a;letter-spacing:1px;margin-top:2px}
+.fleg{display:flex;flex-wrap:wrap;gap:12px;padding:9px 15px;border-top:1px solid var(--br);background:var(--bg3)}
+.fl{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;font-weight:500;color:var(--t3)}
+.fld{width:18px;height:3px;border-radius:2px}
+
+/* INFO TABS */
+.itabs{display:flex;border-bottom:1px solid var(--br);background:var(--bg3)}
+.itab{font-family:var(--mono);font-size:9px;font-weight:500;padding:9px 14px;background:none;border:none;
+color:var(--t3);cursor:pointer;letter-spacing:1px;text-transform:uppercase;
+border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;flex:1}
+.itab:hover{color:var(--t2)}
+.itab.active{color:var(--c1);border-bottom-color:var(--c1);background:var(--bg2)}
+.ipane{display:none;padding:14px}
+.ipane.active{display:block}
+.itext{font-size:13px;font-weight:400;color:var(--t2);line-height:1.8}
+.iwhy{background:linear-gradient(90deg,rgba(180,83,9,.06),transparent);border-left:3px solid var(--amber);
+padding:11px 14px;border-radius:0 6px 6px 0;margin:10px 0;font-size:12px;font-weight:500;color:var(--t2);line-height:1.75}
+.iwarn{background:linear-gradient(90deg,rgba(185,28,28,.06),transparent);border-left:3px solid var(--red);
+padding:11px 14px;border-radius:0 6px 6px 0;margin:10px 0;font-size:12px;font-weight:500;color:var(--t2);line-height:1.75}
+.itag-row{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}
+.itag{font-family:var(--mono);font-size:9px;font-weight:500;padding:3px 9px;border-radius:4px}
+.tg{background:rgba(21,128,61,.09);color:var(--green);border:1px solid rgba(21,128,61,.25)}
+.tr{background:rgba(185,28,28,.08);color:var(--red);border:1px solid rgba(185,28,28,.2)}
+
+/* RIGHT COL */
+.rcol{display:flex;flex-direction:column;gap:14px}
+.rs-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:13px}
+.rsb{background:var(--bg3);border:1px solid var(--br);border-radius:6px;padding:11px;text-align:center}
+.rsb-n{font-family:var(--hd);font-size:22px;font-weight:800;color:var(--c1)}
+.rsb-l{font-family:var(--mono);font-size:8px;font-weight:500;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+.gwrap{padding:11px 15px 15px}
+.gtitle{font-family:var(--mono);font-size:8px;font-weight:500;color:var(--t3);letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:9px}
+#GC{display:block;margin:0 auto}
+.cbwrap{padding:11px 14px 15px}
+.cblbl{font-family:var(--mono);font-size:8px;font-weight:500;color:var(--t3);letter-spacing:1px;margin-bottom:5px}
+.cbtrack{background:var(--bg3);height:5px;border-radius:4px;overflow:hidden;border:1px solid var(--br)}
+.cbfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--c1),var(--purple));transition:width .6s ease}
+.prow{display:flex;justify-content:space-between;align-items:center;padding:6px 14px;border-bottom:1px solid var(--br)}
+.prow:last-child{border-bottom:none}
+.prk{font-family:var(--mono);font-size:8px;font-weight:500;color:var(--t3);letter-spacing:.5px}
+.prv{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--t2);text-align:right;max-width:56%}
+
+/* ═══ HC SERVICES PAGE ═══ */
+.srv-layout{display:grid;grid-template-columns:216px 1fr;gap:14px;align-items:start}
+.slist{max-height:80vh;overflow-y:auto}
+.slist::-webkit-scrollbar{width:3px}
+.slist::-webkit-scrollbar-thumb{background:rgba(26,107,189,.25);border-radius:2px}
+.si{display:flex;align-items:center;gap:10px;padding:10px 15px;cursor:pointer;
+border-left:3px solid transparent;transition:all .15s}
+.si:hover{background:rgba(26,107,189,.04);border-left-color:rgba(26,107,189,.3)}
+.si.active{background:rgba(26,107,189,.08);border-left-color:var(--c1)}
+.si-icon{font-size:17px;flex-shrink:0}
+.si-nm{font-size:12px;font-weight:700;color:var(--text)}
+.si-fm{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--t3);margin-top:2px}
+.si-haz{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.smain{display:flex;flex-direction:column;gap:14px}
+
+/* SERVICE CANVAS — keep dark */
+.srvvid{position:relative;background:#020b18;border-radius:8px;overflow:hidden;border:1px solid var(--br);box-shadow:var(--shadow)}
+#SC{display:block;width:100%;aspect-ratio:16/9}
+.shud{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end}
+.shud-b{background:linear-gradient(transparent,rgba(2,11,24,.93));padding:20px 18px 14px}
+.shud-title{font-family:var(--hd);font-size:20px;font-weight:800;color:#e8f0ff;margin-bottom:4px}
+.shud-fm{font-family:var(--mono);font-size:11px;font-weight:500;color:#7ecfff;margin-bottom:9px}
+.shud-plans{display:flex;gap:8px;flex-wrap:wrap}
+.spc{font-family:var(--hd);font-size:10px;font-weight:700;padding:4px 12px;border-radius:4px;border:1px solid;letter-spacing:.5px}
+.hazbar{height:4px;position:absolute;top:0;left:0;right:0;border-radius:0}
+
+.spg{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.sp{background:var(--bg2);border:1px solid var(--br);border-radius:8px;padding:11px 13px;box-shadow:var(--shadow)}
+.sp-lbl{font-family:var(--mono);font-size:8px;font-weight:500;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.sp-val{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text)}
+.sp-sub{font-family:var(--mono);font-size:8px;color:var(--t4);margin-top:2px}
+
+/* SERVICE PLAN TABLE */
+.spt-head{display:flex;background:var(--bg3);border-bottom:1px solid var(--br2)}
+.sph{font-family:var(--mono);font-size:8px;font-weight:600;color:var(--t3);padding:9px 14px;letter-spacing:1px;text-transform:uppercase;border-right:1px solid var(--br)}
+.sph:last-child{border-right:none;flex:1}
+.spr{display:flex;border-bottom:1px solid var(--br);transition:background .15s}
+.spr:last-child{border-bottom:none}
+.spr:hover{background:rgba(26,107,189,.03)}
+.spc2{padding:10px 14px;border-right:1px solid var(--br);font-size:12px;color:var(--t2);vertical-align:top}
+.spc2:last-child{border-right:none;flex:1;color:var(--t2);font-size:12px;line-height:1.65;font-weight:400}
+.sbadge{font-family:var(--hd);font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;white-space:nowrap}
+.pchip{font-family:var(--mono);font-size:8px;font-weight:600;padding:2px 7px;border-radius:4px}
+.pmust{background:rgba(185,28,28,.1);color:var(--red);border:1px solid rgba(185,28,28,.3)}
+.prec{background:rgba(26,107,189,.1);color:var(--c1);border:1px solid var(--br2)}
+.popt{background:rgba(100,116,139,.1);color:var(--t2);border:1px solid var(--br)}
+
+/* ═══ COMBOS PAGE ═══ */
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.cc{background:var(--bg2);border:1px solid var(--br);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)}
+.cc:hover{border-color:var(--br2);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.cc::before{display:none}
+.cc-h{padding:14px 16px 10px;border-bottom:1px solid var(--br);background:var(--bg3)}
+.cc-n{font-family:var(--hd);font-size:15px;font-weight:800;color:var(--c1)}
+.cc-s{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--amber);letter-spacing:.5px;margin-top:4px}
+.cc-i{font-family:var(--mono);font-size:8px;font-weight:500;color:var(--t3);margin-top:3px}
+.cc-b{padding:13px 16px}
+.cc-ps{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.ccb{font-family:var(--hd);font-size:9px;font-weight:700;padding:3px 10px;border-radius:4px}
+.cc-d{font-size:12px;font-weight:400;color:var(--t2);line-height:1.7;margin-bottom:8px}
+.cc-e{font-size:11px;font-weight:500;color:var(--t3);line-height:1.65;border-top:1px solid var(--br);padding-top:9px}
+.cc-e b{color:var(--amber);font-weight:600}
+
+/* ═══ COMPARISON ═══ */
+.cmpwrap{overflow-x:auto}
+.cmptbl{width:100%;border-collapse:collapse;font-size:12px}
+.cmptbl th{background:var(--bg3);padding:10px 13px;text-align:left;font-family:var(--mono);
+font-size:8px;font-weight:600;color:var(--t3);letter-spacing:1px;text-transform:uppercase;
+border-bottom:2px solid var(--br2);white-space:nowrap;position:sticky;top:0;z-index:10}
+.cmptbl td{padding:9px 13px;border-bottom:1px solid var(--br);color:var(--t2);vertical-align:middle;font-weight:400}
+.cmptbl tr:hover td{background:rgba(26,107,189,.03)}
+.ctid{font-family:var(--hd);font-weight:700;color:var(--c1);font-size:13px}
+.ctg{color:var(--green);font-weight:600}.ctr{color:var(--red);font-weight:600}.ctw{color:var(--amber);font-weight:600}
+.ab{font-family:var(--mono);font-size:8px;font-weight:600;padding:2px 7px;border-radius:4px}
+.a1{background:rgba(26,107,189,.1);color:var(--c1)}
+.a2{background:rgba(124,58,237,.1);color:var(--purple)}
+.a3{background:rgba(21,128,61,.1);color:var(--green)}
+
+/* ═══ DECISION GUIDE ═══ */
+.dtcont{max-width:720px;margin:0 auto}
+.dtbox{background:var(--bg2);border:1px solid var(--br);border-radius:10px;overflow:hidden;box-shadow:var(--shadow-md)}
+.dtbox::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--c1),var(--purple));opacity:.7}
+.dth{padding:15px 18px;border-bottom:1px solid var(--br);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)}
+.dth-t{font-family:var(--hd);font-size:14px;font-weight:800;color:var(--text);letter-spacing:.5px}
+.dtrst{font-family:var(--mono);font-size:9px;font-weight:500;padding:6px 14px;background:none;border:1px solid var(--br);
+color:var(--t3);cursor:pointer;letter-spacing:1px;border-radius:6px;transition:all .15s}
+.dtrst:hover{border-color:var(--c1);color:var(--c1);background:rgba(26,107,189,.05)}
+.dtpath{display:flex;flex-wrap:wrap;gap:5px;padding:8px 18px;border-bottom:1px solid var(--br);min-height:34px;align-items:center;background:rgba(26,107,189,.02)}
+.dtps{font-family:var(--mono);font-size:8px;font-weight:500;padding:3px 9px;background:rgba(26,107,189,.08);
+border:1px solid rgba(26,107,189,.2);color:var(--c2);border-radius:4px}
+.dtbody{padding:22px 18px}
+.dtql{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.dtq{font-family:var(--hd);font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;line-height:1.35}
+.dtopts{display:flex;flex-direction:column;gap:7px}
+.dtopt{background:none;border:1.5px solid var(--br);border-radius:8px;padding:12px 16px;
+text-align:left;cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);font-family:var(--font);
+transition:all .15s;display:flex;align-items:center;gap:10px;line-height:1.45}
+.dtopt::before{content:'▶';font-size:7px;color:var(--c1);opacity:0;flex-shrink:0;transition:opacity .15s}
+.dtopt:hover{border-color:var(--c1);color:var(--text);background:rgba(26,107,189,.05);padding-left:22px}
+.dtopt:hover::before{opacity:1}
+.dtres-tag{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.dtres-pn{font-family:var(--hd);font-size:38px;font-weight:800;color:var(--c1);line-height:1;margin-bottom:5px}
+.dtres-nm{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--t2);letter-spacing:.5px;margin-bottom:14px}
+.dtres-why{font-size:14px;font-weight:400;color:var(--t2);line-height:1.8;border-left:3px solid var(--c1);padding-left:14px}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:rgba(26,107,189,.25);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(26,107,189,.45)}
+</style>
+</head>
+<body>
+<div id="wm">Yujank</div>
+<div class="crn c-tl"></div><div class="crn c-tr"></div><div class="crn c-bl"></div><div class="crn c-br"></div>
+
+<div class="app">
+<div class="topbar">
+  <div class="tb-logo">
+    <div class="tb-hex"><svg viewBox="0 0 30 30"><polygon points="15,2 27,8.5 27,21.5 15,28 3,21.5 3,8.5"/></svg></div>
+    <div><div class="logo-nm">API 682</div><span class="logo-sb">Engineering Command Center</span></div>
+  </div>
+  <nav class="tb-nav">
+    <button class="tnav active" onclick="showPage('dash',this)">Dashboard</button>
+    <button class="tnav" onclick="showPage('hcsrv',this)">HC Services</button>
+    <button class="tnav" onclick="showPage('combos',this)">Combinations</button>
+    <button class="tnav" onclick="showPage('cmp',this)">Matrix</button>
+    <button class="tnav" onclick="showPage('dtree',this)">Decision Guide</button>
+  </nav>
+  <div class="tb-right">
+    <div class="sdot"></div><span class="stxt">LIVE</span>
+    <div class="clk" id="clk">--:--:--</div>
+  </div>
+</div>
+<div class="ticker"><div class="ticker-tr" id="ticker"></div></div>
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dash">
+  <div class="mrow" id="mrow"></div>
+  <div class="dash-layout">
+    <div class="panel">
+      <div class="ph"><div class="ph-title">Seal Plans</div><div class="ph-badge">API 682 · 4th Ed.</div></div>
+      <div class="plist" id="plist"></div>
+    </div>
+    <div class="ccol">
+      <div class="panel" style="overflow:hidden">
+        <div class="ph"><div class="ph-title">Live Pump + Seal Simulation</div><div class="ph-live">RENDERING</div></div>
+        <div class="pump-wrap">
+          <canvas id="MC" width="760" height="342"></canvas>
+          <div class="chud">
+            <div class="hud-t"><span class="hud-tag">▶ LIVE SIM · API 682 4TH ED.</span><span class="hud-tag" id="harr">ARR.1</span></div>
+            <div class="hud-b">
+              <div><div class="hb-pnum" id="hpn">Plan 11</div><div class="hb-pname" id="hpnm">Self-flush from discharge</div><div class="hb-parr" id="hparr">ARR. 1 · SINGLE SEAL</div></div>
+              <div class="hb-inds">
+                <div class="hbi"><div class="hbi-v" id="hi1" style="color:var(--c1)">DISCH</div><div class="hbi-l">SEAL P</div></div>
+                <div class="hbi"><div class="hbi-v" id="hi2" style="color:var(--green)">PROC</div><div class="hbi-l">TEMP</div></div>
+                <div class="hbi"><div class="hbi-v" id="hi3" style="color:var(--amber)">INT</div><div class="hbi-l">SOURCE</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fleg">
+          <div class="fl"><div class="fld" style="background:#ff6b35"></div>Hot process fluid</div>
+          <div class="fl"><div class="fld" style="background:#00d4ff"></div>Flush/barrier</div>
+          <div class="fl"><div class="fld" style="background:#00e676"></div>Clean/external</div>
+          <div class="fl"><div class="fld" style="background:#c084fc"></div>Buffer fluid</div>
+          <div class="fl"><div class="fld" style="background:#ffb300"></div>Quench/steam</div>
+          <div class="fl"><div class="fld" style="background:#60a5fa"></div>N₂ gas barrier</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="itabs">
+          <button class="itab active" onclick="itab('ov',this)">Overview</button>
+          <button class="itab" onclick="itab('wy',this)">Why / Why Not</button>
+          <button class="itab" onclick="itab('ap',this)">Applications</button>
+          <button class="itab" onclick="itab('hc',this)">HC Notes</button>
+        </div>
+        <div class="ipane active" id="ip-ov"><div class="itext" id="ip-d"></div></div>
+        <div class="ipane" id="ip-wy"><div id="ip-w"></div></div>
+        <div class="ipane" id="ip-ap">
+          <div style="font-family:var(--mono);font-size:7px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Recommended</div>
+          <div class="itag-row" id="ip-u"></div>
+          <div style="font-family:var(--mono);font-size:7px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin:9px 0 6px">Avoid when</div>
+          <div class="itag-row" id="ip-a"></div>
+        </div>
+        <div class="ipane" id="ip-hc"><div class="iwhy" id="ip-hcv"></div></div>
+      </div>
+    </div>
+    <div class="rcol">
+      <div class="panel"><div class="ph"><div class="ph-title">System Stats</div></div>
+        <div class="rs-grid">
+          <div class="rsb"><div class="rsb-n">24+</div><div class="rsb-l">Plans</div></div>
+          <div class="rsb"><div class="rsb-n">3</div><div class="rsb-l">Arrangements</div></div>
+          <div class="rsb"><div class="rsb-n">7</div><div class="rsb-l">HC Services</div></div>
+          <div class="rsb"><div class="rsb-n">15+</div><div class="rsb-l">Combinations</div></div>
+        </div>
+      </div>
+      <div class="panel"><div class="ph"><div class="ph-title">Pressure Gauge</div></div>
+        <div class="gwrap"><div class="gtitle">Seal Chamber Pressure</div><canvas id="GC" width="196" height="115"></canvas></div>
+      </div>
+      <div class="panel"><div class="ph"><div class="ph-title">Plan Parameters</div></div>
+        <div class="cbwrap"><div class="cblbl">Complexity Level</div><div class="cbtrack"><div class="cbfill" id="cbf" style="width:20%"></div></div></div>
+        <div id="prws"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HC SERVICES -->
+<div class="page" id="page-hcsrv">
+  <div class="srv-layout">
+    <div class="panel"><div class="ph"><div class="ph-title">HC Services</div><div class="ph-badge">7 Streams</div></div>
+      <div class="slist" id="slist"></div>
+    </div>
+    <div class="smain">
+      <div class="srvvid">
+        <canvas id="SC" width="840" height="472"></canvas>
+        <div class="shud"><div class="shud-b">
+          <div class="shud-title" id="stitle">Select a hydrocarbon service</div>
+          <div class="shud-fm" id="sform"></div>
+          <div class="shud-plans" id="splans"></div>
+        </div></div>
+        <div class="hazbar" id="hb"></div>
+      </div>
+      <div class="spg" id="spg"></div>
+      <div class="panel"><div class="ph"><div class="ph-title">Seal Plan Selection — Engineering Rationale</div></div>
+        <div class="spt-head">
+          <div class="sph" style="min-width:78px">Plan</div>
+          <div class="sph" style="min-width:72px">Priority</div>
+          <div class="sph">Engineering Reason — When & Why to Apply</div>
+        </div>
+        <div id="sprows"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMBOS -->
+<div class="page" id="page-combos">
+  <div style="margin-bottom:16px"><div style="font-family:var(--hd);font-size:22px;font-weight:800;color:var(--c1);letter-spacing:.5px">Plan Combinations</div><div style="font-family:var(--mono);font-size:9px;font-weight:500;color:var(--t3);margin-top:3px;letter-spacing:1px">How API 682 plans work together in real hydrocarbon plant service</div></div>
+  <div class="cg" id="cg"></div>
+</div>
+
+<!-- COMPARISON MATRIX -->
+<div class="page" id="page-cmp">
+  <div style="margin-bottom:16px"><div style="font-family:var(--hd);font-size:22px;font-weight:800;color:var(--c1);letter-spacing:.5px">Comparison Matrix</div><div style="font-family:var(--mono);font-size:9px;font-weight:500;color:var(--t3);margin-top:3px;letter-spacing:1px">All API 682 seal plans at a glance</div></div>
+  <div class="panel"><div class="cmpwrap"><table class="cmptbl" id="cmptbl"></table></div></div>
+</div>
+
+<!-- DECISION GUIDE -->
+<div class="page" id="page-dtree">
+  <div style="margin-bottom:16px"><div style="font-family:var(--hd);font-size:22px;font-weight:800;color:var(--c1);letter-spacing:.5px">Decision Guide</div><div style="font-family:var(--mono);font-size:9px;font-weight:500;color:var(--t3);margin-top:3px;letter-spacing:1px">Step-by-step seal plan selection for your service</div></div>
+  <div class="dtcont"><div class="dtbox">
+    <div class="dtbox::before"></div>
+    <div class="dth"><div class="dth-t">Interactive Plan Selector</div><button class="dtrst" onclick="resetDT()">↺ RESET</button></div>
+    <div class="dtpath" id="dtp"></div>
+    <div class="dtbody" id="dtb"></div>
+  </div></div>
+</div>
+
+</div></div>
+<script>
+// ════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════
+const P={
+p11:{n:'11',nm:'Self-flush from discharge',cat:'Flush',arr:'1',cplx:1,col:'#00d4ff',
+  pr:'= Discharge P',src:'Internal',tp:'Process temp',
+  desc:'Process fluid from pump discharge is orificed into the seal chamber. Most widely used plan worldwide. The orifice controls flow rate; differential pressure between discharge and seal chamber drives circulation. Keeps seal faces cool and lubricated with the process fluid itself. No external utilities needed — lowest CAPEX and OPEX.',
+  why:'Use when the process fluid is clean (no abrasives), has adequate lubricity, and vapor pressure margin is sufficient at seal operating conditions. The benchmark plan for any clean HC service.',
+  whynot:'Avoid on dirty/abrasive fluids (solids will score seal faces), near-boiling fluids (flash risk across the orifice), polymerizing monomers, or very high viscosity fluids where orifice flow is insufficient.',
+  uses:['Clean crude oil','Diesel / kerosene','Light naphtha','Gasoline','Lube oil','Condensate','Heating oil'],
+  avoid:['Slurries >50ppm solids','Near-boiling VP fluids','Polymerizing monomers','Viscosity >100 cP'],
+  hc:'The default plan for clean refinery distillates. Standard for CDU side-draws (diesel, kero, naphtha), tank farm pumps, product blending. Not for LPG/VP service.',
+  hi:['DISCH','PROC','INT'],hic:['#00d4ff','#00e676','#ffb300'],
+  sim:'p11'},
+p12:{n:'12',nm:'Reverse circulation flush',cat:'Flush',arr:'1',cplx:1,col:'#00d4ff',
+  pr:'= Discharge P',src:'Internal',tp:'Process temp',
+  desc:'Identical to Plan 11 but flush enters at the bottom of the seal gland and exits at the top back to suction. The reverse flow path completely purges vapor pockets. Requires two connections to the gland (inlet + outlet) vs one for Plan 11.',
+  why:'Chosen specifically when vapor lock risk exists — vertical pumps, fluids with dissolved gas, services prone to gas accumulation in the seal chamber.',
+  whynot:'Two gland connections required. Not for dirty fluids. More piping complexity than Plan 11 for no benefit on horizontal pumps with clean fluid.',
+  uses:['Vertical pumps','High dissolved-gas HC','Condensate pumps','Gas binding prone services'],
+  avoid:['Dirty or particulate fluids','Abrasive service','Horizontal pumps with no vapor risk'],
+  hc:'Vertical booster pumps in refinery, condensate extraction pumps, vertical inline HC service.',
+  hi:['DISCH','PROC','INT'],hic:['#00d4ff','#00e676','#ffb300'],sim:'p12'},
+p13:{n:'13',nm:'Suction-return flush',cat:'Flush',arr:'1',cplx:2,col:'#00d4ff',
+  pr:'≈ Suction P (LOW)',src:'Internal',tp:'Process temp',
+  desc:'An internal pumping ring drives fluid from the seal chamber to the pump suction (low-pressure side). Seal chamber operates at near-suction pressure. Dramatically reduces the pressure differential across the seal faces — extending seal life significantly on high-pressure pumps.',
+  why:'For high-pressure pumps (>40 bar discharge) where standard Plan 11 pressure at the seal causes excessive face closing loads. Also for vertical inline pumps.',
+  whynot:'Depends entirely on the pumping ring functioning correctly. Ring wear or failure means no circulation and rapid heat soak. Not for viscous fluids. Fluid must not flash at suction pressure.',
+  uses:['High-pressure (>40 bar) refinery pumps','Boiler feed water','Vertical inline high-P HC','Hydrocracker feed'],
+  avoid:['Fluids flashing at suction P','Viscous fluids >50 cP','If pumping ring integrity uncertain'],
+  hc:'BFW pumps, high-P crude charge, hydrocracker feed — wherever seal face pressure reduction is the key requirement.',
+  hi:['SUCT','PROC','INT'],hic:['#60a5fa','#00e676','#ffb300'],sim:'p13'},
+p14:{n:'14',nm:'Combined Plan 11 + 13',cat:'Flush',arr:'1',cplx:2,col:'#00d4ff',
+  pr:'Dynamic: between P suct & P disch',src:'Internal',tp:'Process temp',
+  desc:'The best of both worlds: flush in from discharge (Plan 11) AND drain out to suction (Plan 13) simultaneously. Creates a continuous, forced circulation loop through the seal chamber. Fresh fluid constantly entering; hot fluid constantly exiting.',
+  why:'Maximum flushing effectiveness for single-seal arrangements on clean service. Best choice when very long MTBR is required.',
+  whynot:'More piping than Plan 11 alone. Pumping ring still required for Plan 13 portion. No benefit for dirty fluids — solids not removed.',
+  uses:['Clean HC requiring maximum circulation','Vertical inline pumps','Long MTBR clean HC service'],
+  avoid:['Dirty or particulate fluids'],
+  hc:'Clean refinery distillate pumps where MTBR is the primary KPI and piping complexity is acceptable.',
+  hi:['DISCH','PROC','INT'],hic:['#00d4ff','#00e676','#ffb300'],sim:'p14'},
+p21:{n:'21',nm:'Cooled flush — heat exchanger',cat:'Cooled',arr:'1',cplx:2,col:'#00bfa5',
+  pr:'= Discharge P',src:'Internal cooled',tp:'REDUCED via CW cooler',
+  desc:'Plan 11 with a water-cooled heat exchanger in the flush line. Discharge fluid is cooled before entering the seal chamber. The cooler maintains adequate vapor pressure margin at the seal faces and protects elastomers from thermal damage.',
+  why:'When process temperature exceeds seal material temperature limits (typically >80°C for elastomers, >120°C for PTFE). Common in refinery pre-heat trains and hot oil service.',
+  whynot:'Requires cooling water utility. Cooler fouling causes loss of cooling and overheats the seal — must monitor. Not for fluids that solidify or increase viscosity excessively when cooled.',
+  uses:['Hot crude >80°C','Heavy naphtha hot service','Atmospheric residue','Lube base oil','Thermal oil'],
+  avoid:['Waxy crude that solidifies on cooling','No cooling water available','Polymerizing fluids'],
+  hc:'Pre-heat train crude pumps (120–200°C), hot naphtha, atmospheric residue, VGO service below 150°C.',
+  hi:['DISCH','HOT','COOLED'],hic:['#00d4ff','#ff6b35','#00bfa5'],sim:'p21'},
+p22:{n:'22',nm:'Cooled flush + Y-strainer',cat:'Cooled',arr:'1',cplx:3,col:'#00bfa5',
+  pr:'= Discharge P',src:'Cooled + filtered',tp:'Reduced',
+  desc:'Plan 21 with an added Y-strainer for particulate removal. Dual protection: the strainer catches abrasive particles; the cooler manages temperature. Strainer is serviceable in-line without shutdown.',
+  why:'Hot service with minor particulate content — pipe scale, corrosion products, minor solids. Both thermal and mechanical protection in one system.',
+  whynot:'Strainer must be cleaned/maintained. High solids loading plugs the strainer rapidly. Polymerizing fluids will foul both strainer and cooler.',
+  uses:['Hot crude with fine scale','Crude oil with corrosion products','Refinery services with pipe debris'],
+  avoid:['Heavy slurry','Polymerizing fluids','Very waxy or high pour-point crude'],
+  hc:'Hot crude oil with minor scale content, atmospheric crude with pipe corrosion debris above 80°C.',
+  hi:['DISCH','HOT','CLEAN'],hic:['#00d4ff','#ff6b35','#00bfa5'],sim:'p22'},
+p23:{n:'23',nm:'Self-contained cooled loop',cat:'Cooled',arr:'1',cplx:3,col:'#00bfa5',
+  pr:'Low (isolated circuit)',src:'Isolated loop',tp:'SIGNIFICANTLY reduced',
+  desc:'A pumping ring circulates only the small volume of fluid inside the seal chamber in a CLOSED, ISOLATED loop: seal chamber → cooler → back to seal. The thermal mass is tiny (only the seal chamber volume), so the cooler achieves maximum temperature reduction with minimum cooling water. This is the most thermally efficient plan in API 682.',
+  why:'API 682 preferred plan for hot clean service. Seal faces operate 30–60°C below process temperature. Dramatically extends seal life vs Plan 21. Specifically recommended for BFW pumps and all hot clean hydrocarbon service above 150°C.',
+  whynot:'Any particulates in the fluid will block the small-bore isolated cooler circuit and stop circulation. Pumping ring failure causes rapid heat soak — seal fails quickly. Fluid must not polymerize or degrade in the stagnant isolated loop.',
+  uses:['Boiler feed water (BFW)','Hot HC >150°C','Refinery hot oil circuits','Thermal oil pumps','Vacuum gas oil (VGO)'],
+  avoid:['Dirty / particulate service','Polymerizing monomers','Fluids that degrade in stagnant isolated loop'],
+  hc:'The gold standard for hot clean HC: BFW pumps, hot oil, VGO service, thermal oil circuits. API 682 specifically recommends Plan 23 for these services.',
+  hi:['LOW P','COOL','ISOL'],hic:['#60a5fa','#00bfa5','#00e676'],sim:'p23'},
+p31:{n:'31',nm:'Cyclone separator',cat:'Dirty',arr:'1',cplx:3,col:'#ffb300',
+  pr:'= Discharge P',src:'Internal cleaned',tp:'Process temp',
+  desc:'A hydrocyclone separator in the flush line from discharge removes particles by centrifugal action. Clean overflow (top exit) goes to the seal chamber; heavy particle-laden underflow (bottom exit) returns to pump suction. No external flush source needed.',
+  why:'Enables internal process flush on moderately dirty service without needing an external clean fluid. Effective when solids are coarser than 74 microns and density difference between liquid and solid is adequate.',
+  whynot:'Does not remove fine particles <74 µm. Light hydrocarbons (low SG) give poor centrifugal separation. Very high solids loading overwhelms the cyclone — underflow volume becomes too large.',
+  uses:['Crude oil with sand/coarse solids','Produced water with sediment','Moderate-loading crude transfer'],
+  avoid:['Fine particle slurries <74 µm','Light HC (low SG, poor separation)','Heavy loading >1% solids'],
+  hc:'Crude oil transfer pumps with sand content, upstream production pumps, produced water service.',
+  hi:['DISCH','PROC','CLEAN'],hic:['#00d4ff','#ff6b35','#ffb300'],sim:'p31'},
+p32:{n:'32',nm:'External flush injection',cat:'Dirty',arr:'1',cplx:2,col:'#00e676',
+  pr:'Flush P > Seal chamber P (mandatory)',src:'EXTERNAL',tp:'Flush fluid temp',
+  desc:'A clean fluid from an EXTERNAL source is injected into the seal chamber. Flush pressure must always exceed seal chamber pressure to guarantee inward flow and prevent process fluid from migrating to the seal faces. Process fluid never contacts the seal faces.',
+  why:'The definitive plan when the process fluid itself is unsuitable for flushing — too dirty, abrasive, corrosive, hot, or hazardous. The external fluid is chosen to be compatible and non-damaging to seal materials.',
+  whynot:'The external flush fluid dilutes/contaminates the process product — only acceptable when this can be tolerated. Requires a reliable external source at sufficient pressure. Operating cost of the flush utility.',
+  uses:['FCC slurry pumps','Hot asphalt','Sulfur service','Caustic with solids','Polymerizing monomers','Abrasive catalyst slurry'],
+  avoid:['Where any process contamination is unacceptable','No compatible external flush source available'],
+  hc:'FCC slurry circulating pumps, hot pitch pumps, sulfur solidification service, aggressive chemical service.',
+  hi:['FLUSH>P','EXT','EXT'],hic:['#00e676','#00e676','#00e676'],sim:'p32'},
+p41:{n:'41',nm:'Cyclone separator + cooler',cat:'Combo',arr:'1',cplx:4,col:'#ffb300',
+  pr:'= Discharge P',src:'Cleaned + cooled',tp:'Reduced',
+  desc:'Plan 31 (cyclone for solids) plus Plan 21 (cooler for temperature) combined in series. Discharge fluid passes through cyclone first (removes coarse solids), then through the cooler (reduces temperature) before entering the seal chamber. Both problems addressed simultaneously.',
+  why:'For hot, moderately dirty service where neither Plan 31 alone (temperature too high) nor Plan 21 alone (still dirty) provides adequate protection. Addresses both failure mechanisms in one system.',
+  whynot:'More complex system — both cyclone and cooler must be maintained. Risk of fouling the downstream cooler with fines passing through the cyclone. Not for heavy slurries.',
+  uses:['Hot crude with scale (>100°C)','Warm produced water','Hot crude pre-heat with debris'],
+  avoid:['Heavy slurries','Polymerizing fluids','No cooling water'],
+  hc:'Hot crude oil pre-heat train pumps above 100°C with pipe scale content. Hot atmospheric crude with solids.',
+  hi:['DISCH','HOT','CLEAN'],hic:['#00d4ff','#ff6b35','#00bfa5'],sim:'p41'},
+p52:{n:'52',nm:'Unpressurized buffer pot',cat:'Dual',arr:'2',cplx:3,col:'#c084fc',
+  pr:'Buffer P < Process P',src:'External buffer',tp:'Controlled',
+  desc:'Arrangement 2 dual-seal system with an external reservoir providing UNPRESSURIZED buffer fluid to the cavity between inner and outer seals. Buffer pressure is BELOW process pressure. Any inner seal leakage is detected by rising buffer level or pressure — the buffer acts as a sentinel for inner seal condition.',
+  why:'Secondary containment for hazardous fluids per OSHA PSM / EPA RMP requirements. If the inner seal fails, process fluid is captured in the buffer fluid — not released directly to atmosphere. Early detection.',
+  whynot:'Buffer is below process pressure — inner seal failure means process contaminates the buffer (not zero-emission). Not suitable for Cat. I carcinogens or H₂S >500ppm — use Plan 53A for those.',
+  uses:['Sour crude (H₂S 50–500ppm)','OSHA PSM compliance','API 682 Cat. II hazardous HC','Moderate-toxicity refinery service','Amine unit pumps'],
+  avoid:['Benzene / Cat. III carcinogens (use 53A)','H₂S >500ppm (use 53A)','Cryogenic service'],
+  hc:'Standard for sour crude CDU charge/reflux pumps, H₂S-bearing gas plant service, rich/lean amine pumps where secondary containment is required.',
+  hi:['<PROC','BUFFER','EXT'],hic:['#c084fc','#c084fc','#c084fc'],sim:'p52'},
+p53a:{n:'53A',nm:'Pressurized barrier reservoir',cat:'Dual',arr:'3',cplx:4,col:'#00e676',
+  pr:'Barrier P > Process P (+1.4–2 bar)',src:'External pressurized',tp:'Controlled',
+  desc:'Arrangement 3 dual-seal. A reservoir holds barrier fluid pressurized ABOVE process pressure by an N₂ blanket. Barrier fluid flows inward past the inner seal face — any leakage is ALWAYS clean barrier fluid into the process, never process fluid outward. True zero-emission design.',
+  why:'MANDATORY for API 682 Category III service — carcinogens, highly toxic fluids, H₂S >500ppm. The pressurized barrier fundamentally reverses the leakage direction: inward only. Zero atmospheric emission by physical design.',
+  whynot:'Barrier fluid must be compatible with the process. N₂ pressure source must be 100% reliable. Barrier fluid contamination of the product must be acceptable to the process.',
+  uses:['Benzene-containing streams','H₂S >500ppm','API 682 Cat. III service','MACT-regulated aromatics','Carcinogenic HC','Chlorinated HC service'],
+  avoid:['Product contamination by barrier fluid unacceptable','Very low pressure pumps (maintaining differential difficult)','N₂ supply unreliable'],
+  hc:'Benzene/BTX plant pumps, high-H₂S sour crude, aromatic feed/product pumps, Cat. III toxic HC. The definitive plan for the most hazardous hydrocarbon service.',
+  hi:['>PROC','BARRIER','ZERO'],hic:['#00e676','#00e676','#00e676'],sim:'p53a'},
+p53b:{n:'53B',nm:'Bladder accumulator barrier',cat:'Dual',arr:'3',cplx:4,col:'#00e676',
+  pr:'Barrier P > Process P',src:'Bladder accumulator',tp:'Controlled',
+  desc:'Same as 53A but uses a BLADDER ACCUMULATOR. A flexible elastomeric bladder inside the accumulator physically separates the N₂ pressurizing gas from the barrier fluid — zero direct gas-liquid contact. Compensates for thermal volume changes automatically without a continuously vented N₂ supply.',
+  why:'Preferred over 53A when N₂ absorption into barrier fluid is harmful (causes foaming, voids, or density change). Better for thermally cycling services where the bladder absorbs volume changes.',
+  whynot:'Bladder has finite life — must be inspected and replaced. High-pressure cycling causes bladder fatigue. Requires monitoring for bladder integrity. Upper pressure limit (~350 bar for most bladders).',
+  uses:['Cat. III with thermal cycling','N₂ absorption problematic in 53A','Offshore limited N₂ supply','Thermally dynamic service'],
+  avoid:['Very high pressure >300 bar (bladder limits)','Extreme temperature cycling stressing elastomer'],
+  hc:'Offshore aromatic pumps, thermally cycling toxic service, Cat. III where 53A N₂ direct-contact is unsuitable.',
+  hi:['>PROC','BLADDER','ZERO'],hic:['#00e676','#00e676','#00e676'],sim:'p53b'},
+p53c:{n:'53C',nm:'Piston accumulator barrier',cat:'Dual',arr:'3',cplx:4,col:'#00e676',
+  pr:'Barrier P > Process P',src:'Piston accumulator',tp:'Controlled',
+  desc:'Same principle as 53B but uses a PISTON ACCUMULATOR. A solid piston provides more robust N₂/fluid separation. Higher pressure capability than the bladder type. Better performance for high-cycle-rate services.',
+  why:'Superior to 53B for high-pressure (>200 bar) or high-cycle services. Offshore and subsea applications where bladder life is inadequate.',
+  whynot:'Piston seal wear generates small particles in the barrier fluid — consider for precision requirements. Requires monitoring of piston seal condition.',
+  uses:['High-P offshore pumps >100 bar','Subsea applications','High-cycle refinery pumps'],
+  avoid:['Ultra-clean barrier fluid required (piston seal wear)','Low-pressure service (unnecessary complexity)'],
+  hc:'Offshore and subsea HC pumps, high-P injection service, where bladder life is the limiting factor.',
+  hi:['>PROC','PISTON','ZERO'],hic:['#00e676','#00e676','#00e676'],sim:'p53c'},
+p54:{n:'54',nm:'Pressurized central system',cat:'Dual',arr:'3',cplx:5,col:'#00e676',
+  pr:'Central system > all pump pressures',src:'Central plant system',tp:'Centrally controlled',
+  desc:'Pressurized barrier fluid from a CENTRALIZED plant system serves multiple seal chambers simultaneously via a common header. Active pressurization — not passive accumulator storage. Continuous positive flow to each seal. Centralized monitoring, alarm, and maintenance.',
+  why:'The practical solution for large plants with many Cat. III pumps. One reliable central system replaces 10–50+ individual accumulators. Centralized instrumentation and monitoring is more reliable and economical at scale.',
+  whynot:'Single point of failure — central system failure compromises ALL connected seals simultaneously. Critical reliability of the central system is paramount. Cross-contamination risk via shared header between different process streams.',
+  uses:['Large CDU/VDU units (10+ pumps)','Aromatic plants (BTX)','Large petrochemical plants','Refineries with large Cat. III pump populations'],
+  avoid:['Small plants (individual accumulators more cost-effective)','Mixed processes where cross-contamination on shared header is unacceptable'],
+  hc:'Large-scale refinery CDU/VDU pump trains, BTX aromatic plants, olefin plants with many toxic-service pumps.',
+  hi:['>ALL','CENTRAL','ZERO'],hic:['#00e676','#00e676','#00e676'],sim:'p54'},
+p55:{n:'55',nm:'Unpressurized central system',cat:'Dual',arr:'2',cplx:4,col:'#c084fc',
+  pr:'Central buffer P < process P',src:'Central plant system',tp:'Centrally controlled',
+  desc:'The centralized version of Plan 52. An external central system maintains buffer fluid at below-process pressure and circulates it to multiple seal chambers via a common header. Pumping rings in each seal drive individual circulation back to the central buffer tank.',
+  why:'For multiple hazardous pumps on a shared plant system where individual Plan 52 pots per pump are impractical. Centralizes buffer level monitoring and contamination detection.',
+  whynot:'Buffer still below process — inner seal failure still contaminates the buffer system. Not for highest-toxicity Cat. III service (use Plan 54). Cross-contamination risk via central header.',
+  uses:['Multiple sour crude pumps','Plant-wide H₂S service system','Large CDU/VDU with multiple pumps at same hazard level'],
+  avoid:['Highest toxicity Cat. III (use Plan 54)','Cross-contamination sensitive mixed services'],
+  hc:'Multiple sour crude charge/reflux pumps, CDU pump trains sharing a common buffer system.',
+  hi:['<PROC','CENTRAL','BUFFER'],hic:['#c084fc','#c084fc','#c084fc'],sim:'p55'},
+p62:{n:'62',nm:'Quench on atmospheric side',cat:'Quench',arr:'1',cplx:2,col:'#ffb300',
+  pr:'Atmospheric (outer side)',src:'External quench utility',tp:'Quench fluid temp',
+  desc:'A quench fluid (steam, water, N₂, or glycol) is introduced on the ATMOSPHERIC side of the mechanical seal — in the gland plate, outside the primary seal face. The quench prevents process fluid leaking past the seal face from solidifying, crystallizing, coking, or reacting with air in the atmospheric gland area.',
+  why:'For services where leaking process fluid would solidify, coke, crystallize, or create dangerous residue in the gland: caustic (steam quench prevents NaOH crystallization), fatty acids (solidify at ambient), sour water (steam/N₂ dilutes H₂S), coking service (steam prevents carbon buildup).',
+  whynot:'Plan 62 is not a containment plan — only the atmospheric side is affected. Quench fluid is discharged to drain/vent. This increases effluent load. Not a substitute for dual-seal containment on truly hazardous service.',
+  uses:['Caustic (NaOH — steam quench)','Fatty acids (steam prevents solidification)','Sour water (H₂S dilution/neutralization)','Coker charge pumps (anti-coking)','Molten sulfur','High-temperature atmospheric residue'],
+  avoid:['As a substitute for secondary containment on toxic service','Where quench fluid reacts with process'],
+  hc:'Caustic service, sour water stripper pumps, coker feed and transfer pumps, atmospheric residue pumps. Often combined with dual-seal plans.',
+  hi:['ATM','QUENCH','DRAIN'],hic:['#ffb300','#ffb300','#7fa8c8'],sim:'p62'},
+p65:{n:'65',nm:'Leakage detection system',cat:'Detect',arr:'1',cplx:2,col:'#ff3737',
+  pr:'Atmospheric drain',src:'Drain collect',tp:'Process temp',
+  desc:'The seal drain is routed to a dedicated collection vessel with a level switch (and optionally a flow meter for quantitative measurement). Any leakage past the seal face accumulates in the vessel and triggers an alarm when exceeding the preset level. Provides quantitative, documented leakage monitoring.',
+  why:'EPA MACT and LDAR regulatory compliance. Demonstrates that the pump seal is operating within permitted emission limits. Required documentation for benzene MACT and VOC-listed hydrocarbon service in many jurisdictions.',
+  whynot:'Plan 65 DETECTS leakage — it does NOT prevent it. Process fluid still leaks to the detection vessel. This is not a containment plan and is not suitable as the primary protection on truly toxic service.',
+  uses:['Benzene MACT-regulated pumps','LDAR program compliance','VOC-listed HC service','Environmental monitoring programs','Aromatic plant fugitive emissions'],
+  avoid:['As primary (and only) protection on lethal or highly toxic service','Does not replace dual-seal containment'],
+  hc:'Required for benzene-containing streams under MACT regulations, all LDAR-tagged pumps in refinery/chemical plants, aromatic product pumps.',
+  hi:['ATM','DETECT','LDAR'],hic:['#ff3737','#ff3737','#ff3737'],sim:'p65'},
+p72:{n:'72',nm:'N₂ buffer quench (low P)',cat:'Gas',arr:'2',cplx:3,col:'#60a5fa',
+  pr:'N₂ buffer: above atm, below process P',src:'N₂ utility supply',tp:'Ambient',
+  desc:'Nitrogen is introduced at LOW pressure into the buffer space between two seals (Arrangement 2). N₂ pressure is above atmospheric but below process pressure. Excludes air from the seal cavity entirely — critical for pyrophoric fluids. Dilutes any small outward leakage before it can reach atmosphere.',
+  why:'For pyrophoric fluids (ignite spontaneously on air contact) or highly oxygen-sensitive processes. The N₂ buffer creates an inert atmosphere at the seal. Critical for LPG service where air + LPG vapor in the seal cavity creates an explosive atmosphere.',
+  whynot:'N₂ pressure is below process — N₂ leaks inward past the inner seal, contaminating the process. Not for high process pressures where maintaining the N₂ differential against process is difficult.',
+  uses:['Pyrophoric LPG service','LNG service','Oxygen-sensitive processes','Light HC vapor at or near LEL','Untreated LPG with H₂S — air exclusion critical'],
+  avoid:['Where any N₂ contamination of process product is unacceptable','Very high process pressure where N₂ differential is hard to maintain'],
+  hc:'Propane, butane, LPG pump service where air exclusion from the seal cavity is critical. Standard combination partner for Plans 52 and 53A on LPG/VP service.',
+  hi:['N₂<P','INERT','EXAIR'],hic:['#60a5fa','#60a5fa','#60a5fa'],sim:'p72'},
+p74:{n:'74',nm:'Pressurized gas barrier',cat:'Gas',arr:'3',cplx:5,col:'#60a5fa',
+  pr:'Barrier gas P > Process P',src:'High-P N₂ supply',tp:'Ambient',
+  desc:'High-pressure inert gas (N₂ or instrument air) maintained ABOVE process pressure between two dry gas seal faces. Gas leakage direction is always inward into the process — never outward to atmosphere. Zero atmospheric emission. The most demanding gas seal plan and the gas-seal equivalent of Plan 53A.',
+  why:'For the most hazardous gas service where any atmospheric emission is absolutely prohibited. H₂S compressors, toxic gas compressors, carcinogenic vapor service. Leakage is always clean gas into process — never toxic gas out.',
+  whynot:'Very high gas consumption. Gas contamination of the process product must be acceptable. Requires fully reliable high-pressure N₂ supply — failure of supply changes the seal failure mode.',
+  uses:['H₂S gas compressors','Toxic gas service','Benzene vapor compressors','Carcinogenic gas handling'],
+  avoid:['Gas contamination of process product unacceptable','Liquid-lubricated seals (wrong plan)','Very low-pressure service where N₂ differential cost is unjustified'],
+  hc:'Sour gas compressors and pumps, H₂S-containing gas streams, highly toxic aromatic vapor service, Cat. III gas applications.',
+  hi:['>PROC','N₂','ZERO'],hic:['#60a5fa','#60a5fa','#00e676'],sim:'p74'},
+p75:{n:'75',nm:'Condensate drain collection',cat:'Quench',arr:'1',cplx:2,col:'#ffb300',
+  pr:'Atmospheric (drain side)',src:'Drain collection',tp:'Condensation temp',
+  desc:'The seal drain cavity is connected to a collection vessel (or closed drain system). For two-phase or high-VP vapor services, any liquid that condenses from process gas leaking past the seal is captured and routed to the flare drum or closed drain system — not allowed to drip freely onto hot surfaces, piping, or the ground.',
+  why:'For vapor-phase or high vapor pressure services (LPG pumps, propylene, light ends) where condensation at the cooler gland area produces liquid droplets. Environmental protection and fire prevention from dripping flammable condensate.',
+  whynot:'Only relevant for condensing services. The drain must be maintained clear to prevent flooding of the gland area. Not the right plan for purely liquid service (Plan 65 is more appropriate there).',
+  uses:['LPG pumps (propane, butane)','Propylene service','Light naphtha vapor','LPG bullet transfer pumps','Refrigerant service'],
+  avoid:['Purely liquid non-condensing service (use Plan 65 instead)'],
+  hc:'Standard plan for all LPG storage and transfer pumps, propylene service, C3/C4 fractionation pumps. Nearly always combined with Plan 53A or 52 on these high-VP services.',
+  hi:['ATM','COND','FLARE'],hic:['#ffb300','#ffb300','#7fa8c8'],sim:'p75'},
+p76:{n:'76',nm:'Unpressurized gas buffer',cat:'Gas',arr:'2',cplx:3,col:'#c084fc',
+  pr:'Gas buffer P < Process P',src:'Gas buffer utility',tp:'Ambient',
+  desc:'Buffer gas space between dual seals at below-process pressure. Any process gas leaking outward past the inner seal enters the buffer space and is safely vented to the closed flare/vent header rather than to atmosphere directly. The vent flow rate is measured continuously — providing a real-time inner seal health monitor.',
+  why:'For dual-seal gas applications where inner seal leakage must be safely managed and quantified. The vent flow measurement provides ongoing condition monitoring without having to take the pump off-line.',
+  whynot:'Process gas does reach the vent system — requires routing to a safe location (flare or vent header). Not for extremely toxic gas (H₂S >5ppm or OSHA-listed carcinogens — use Plan 74 for those).',
+  uses:['Natural gas pipeline pumps','Light HC gas service','Methane/ethane handling','Gas services requiring continuous leakage monitoring'],
+  avoid:['Extremely toxic gas — H₂S >5ppm, benzene (use Plan 74)','When vent routing to safe location is unavailable'],
+  hc:'Natural gas service, light HC gas pumps, ethane/propane vapor service where vent to flare is available and process gas toxicity is moderate.',
+  hi:['<PROC','BUFFER','FLARE'],hic:['#c084fc','#c084fc','#7fa8c8'],sim:'p76'}
+};
+
+const GROUPS=[
+{l:'Flush / Circulation',ids:['p11','p12','p13','p14']},
+{l:'Cooled Flush',ids:['p21','p22','p23']},
+{l:'Solids / External',ids:['p31','p32','p41']},
+{l:'Dual Seal Support',ids:['p52','p53a','p53b','p53c','p54','p55']},
+{l:'Quench / Drain',ids:['p62','p75']},
+{l:'Leak Detection',ids:['p65']},
+{l:'Gas Seal Plans',ids:['p72','p74','p76']}
+];
+
+// HC SERVICES
+const SRV=[
+{id:'lpg',nm:'LPG',full:'LPG (Liquefied Petroleum Gas)',icon:'🔵',fm:'C₃H₈ / C₄H₁₀',haz:'high',hc:'#ff3737',
+  vp:'7–16 bar @ 40°C',bp:'-42°C (C3) / -1°C (C4)',tp:'Ambient (pressurized) / −40°C refrigerated',density:'500–580 kg/m³',
+  concern:'High VP · Extremely flammable · Flash fire · Asphyxiant · BLEVE risk from stored energy',
+  plans:[
+    {b:'Plan 53A',bc:'#00e676',pri:'MANDATORY',pc:'pmust',r:'Zero-emission design essential — LPG flashes immediately at any leakage point; pressurized barrier above process P ensures all leakage is inward (barrier→process), never outward. Required for any LPG storage/transfer pump.'},
+    {b:'Plan 75',bc:'#ffb300',pri:'MANDATORY',pc:'pmust',r:'LPG condenses at the cooler atmospheric gland surface producing liquid droplets — must be captured in a closed-drain/flare system, not allowed to drip. Critical for fire prevention.'},
+    {b:'Plan 52',bc:'#c084fc',pri:'RECOMMENDED',pc:'prec',r:'Secondary containment alternative where plant standards permit — buffer captures inner seal leakage; N₂ blanket on reservoir for fire safety. Less robust than 53A for highest-hazard LPG.'},
+    {b:'Plan 72',bc:'#60a5fa',pri:'RECOMMENDED',pc:'prec',r:'N₂ buffer in outer seal cavity prevents any air contact with LPG vapors — eliminates explosive LPG/air mixture formation at the seal gland. Critical for unpressurized-buffer designs.'},
+    {b:'Plan 65',bc:'#ff3737',pri:'OPTIONAL',pc:'popt',r:'Leakage collection for LDAR compliance where required by local regulation. Often installed alongside primary containment plan.'}
+  ]},
+{id:'oprop',nm:'Offspec Propylene',full:'Offspec Propylene',icon:'⚗️',fm:'C₃H₆ (off-grade)',haz:'high',hc:'#ff6d00',
+  vp:'16.5 bar @ 40°C',bp:'-47.6°C',tp:'Ambient pressurized or −47°C refrigerated',density:'514 kg/m³ @ −40°C',
+  concern:'Highest common VP · Impurities · Polymerization risk · Asphyxiant · Off-spec means composition uncertainty',
+  plans:[
+    {b:'Plan 53A',bc:'#00e676',pri:'MANDATORY',pc:'pmust',r:'CRITICAL — propylene has the highest vapor pressure of common LPG streams; any leakage flashes explosively. Pressurized barrier (53A) is non-negotiable. Off-spec composition means potentially higher hazard impurities.'},
+    {b:'Plan 75',bc:'#ffb300',pri:'MANDATORY',pc:'pmust',r:'Propylene condenses readily at atmospheric gland temperature; liquid collection to closed flare is mandatory for environmental and fire safety compliance.'},
+    {b:'Plan 72',bc:'#60a5fa',pri:'RECOMMENDED',pc:'prec',r:'N₂ quench in buffer zone — propylene forms explosive mixture with air (LEL 2%, UEL 11.7%); N₂ atmosphere at the seal eliminates this risk entirely. Especially important for off-spec material with unknown impurities.'},
+    {b:'Plan 52+72',bc:'#c084fc',pri:'ALTERNATIVE',pc:'popt',r:'Alternative where 53A barrier fluid compatibility with off-spec propylene (possible reactive impurities) is a concern — Plan 52 secondary containment + Plan 72 N₂ for air exclusion.'},
+    {b:'Plan 11',bc:'#00d4ff',pri:'CONDITIONAL',pc:'popt',r:'Only if service is verified sub-cooled with >3 bar vapor pressure margin — requires detailed pressure drop and bubble-point calculation for flush line. Not recommended for offspec material without rigorous analysis.'}
+  ]},
+{id:'but1',nm:'Butene-1',full:'Butene-1 Pump',icon:'🧪',fm:'C₄H₈ (1-butene)',haz:'high',hc:'#ff6d00',
+  vp:'4.7 bar @ 40°C',bp:'-6.3°C',tp:'Ambient pressurized',density:'588 kg/m³ @ 20°C',
+  concern:'High VP · POLYMERIZES at stagnant seal faces · Flammable · Asphyxiant · Reactive olefin',
+  plans:[
+    {b:'Plan 11 or 13',bc:'#00d4ff',pri:'MANDATORY',pc:'pmust',r:'CRITICAL for polymerization prevention — continuous flush through the seal chamber prevents stagnant zones where butene-1 could initiate polymerization on seal face contact areas. Plan 11 preferred; Plan 13 for high-P service. NEVER allow stagnant butene-1 at seal faces.'},
+    {b:'Plan 53A',bc:'#00e676',pri:'MANDATORY',pc:'pmust',r:'Pressurized barrier above process P: (1) zero atmospheric emission of flammable butene-1, (2) barrier fluid prevents oxygen contact with butene-1 which can initiate polymerization, (3) ensures inward leakage direction only.'},
+    {b:'Plan 72',bc:'#60a5fa',pri:'MANDATORY',pc:'pmust',r:'N₂ atmosphere in buffer zone — oxygen MUST be excluded from butene-1 service as O₂ contact can initiate radical polymerization. This is not optional for monomer service.'},
+    {b:'Plan 75',bc:'#ffb300',pri:'RECOMMENDED',pc:'prec',r:'Butene-1 condenses at the atmospheric gland; liquid collection to closed drain prevents accumulation of polymerizable liquid at the seal.'},
+    {b:'Plan 65',bc:'#ff3737',pri:'OPTIONAL',pc:'popt',r:'LDAR compliance monitoring for VOC-listed butene-1 service.'}
+  ]},
+{id:'c4raff',nm:'C4 Raffinate',full:'C4 Raffinate Pump',icon:'⬛',fm:'C₄ mix (post-extraction)',haz:'med',hc:'#ffb300',
+  vp:'3–6 bar @ 40°C',bp:'0 to +10°C (mix)',tp:'Ambient to 60°C',density:'560–600 kg/m³',
+  concern:'Mixed C4 stream · Residual butadiene possible · Moderate VP · Flammable · Composition-dependent hazard',
+  plans:[
+    {b:'Plan 11',bc:'#00d4ff',pri:'RECOMMENDED',pc:'prec',r:'Acceptable for sub-cooled C4 raffinate with VP margin >2 bar. Most common plan for clean C4 raffinate service. Verify sub-cooling conditions — check actual operating temperature vs bubble point at seal chamber pressure.'},
+    {b:'Plan 21',bc:'#00bfa5',pri:'CONDITIONAL',pc:'popt',r:'If operating temperature exceeds 40°C — cooled flush ensures adequate vapor pressure margin and prevents flashing in the flush line. Required when process temperature approaches the bubble point.'},
+    {b:'Plan 52',bc:'#c084fc',pri:'CONDITIONAL',pc:'prec',r:'Required if residual butadiene content is significant (butadiene is a Group 1 carcinogen/MACT-regulated). Secondary containment for the butadiene-bearing C4 raffinate.'},
+    {b:'Plan 53A',bc:'#00e676',pri:'CONDITIONAL',pc:'popt',r:'If butadiene content exceeds MACT/OSHA Cat. III threshold — upgrade to 53A for zero-emission design. Consult plant HSSE standards for the applicable threshold.'},
+    {b:'Plan 65',bc:'#ff3737',pri:'RECOMMENDED',pc:'prec',r:'LDAR compliance monitoring — C4 raffinate streams in refineries are typically in LDAR programs due to VOC content.'}
+  ]},
+{id:'isoP',nm:'Isopentane',full:'Isopentane Pump',icon:'⚡',fm:'i-C₅H₁₂',haz:'med',hc:'#ffb300',
+  vp:'1.5 bar @ 37.8°C',bp:'27.7°C',tp:'Ambient to 50°C',density:'616 kg/m³ @ 20°C',
+  concern:'Boiling point 28°C — near ambient · VERY easy to flash · Extremely flammable · LEL 1.4%',
+  plans:[
+    {b:'Plan 21',bc:'#00bfa5',pri:'RECOMMENDED',pc:'prec',r:'PREFERRED — isopentane BP is 28°C, so any warm ambient conditions can approach the boiling point at the seal face if using Plan 11 without cooling. Plan 21 cooled flush is often essential to ensure sub-cooled conditions. Critical in summer operating conditions.'},
+    {b:'Plan 11',bc:'#00d4ff',pri:'CONDITIONAL',pc:'popt',r:'Viable ONLY if: (1) seal chamber P maintains >1.5 bar above vapor P at max operating temp, (2) flush line pressure drop calculation confirms no flashing across the orifice. Requires engineering verification — do not assume safe.'},
+    {b:'Plan 52',bc:'#c084fc',pri:'RECOMMENDED',pc:'prec',r:'Secondary containment — isopentane BP near ambient means any leakage flashes immediately to vapor; buffer captures this before atmosphere. OSHA PSM compliance typically requires Plan 52 for isopentane service.'},
+    {b:'Plan 13',bc:'#00d4ff',pri:'CONDITIONAL',pc:'popt',r:'Reduces seal chamber P to suction — only viable if suction pressure maintains isopentane sub-cooled. Verify bubble point vs suction conditions carefully.'},
+    {b:'Plan 65',bc:'#ff3737',pri:'RECOMMENDED',pc:'prec',r:'LDAR compliance — isopentane is a listed VOC with stringent fugitive emission monitoring requirements in most jurisdictions.'}
+  ]},
+{id:'tdlpg',nm:'Treated DCU LPG',full:'Treated DCU LPG',icon:'🏭',fm:'C₃/C₄ post-treater',haz:'med',hc:'#ffb300',
+  vp:'6–14 bar @ 40°C',bp:'< 0°C',tp:'Ambient pressurized',density:'510–560 kg/m³',
+  concern:'High VP · Treated (low sulfur content) · Flammable — cleaner than untreated but still significant hazard',
+  plans:[
+    {b:'Plan 53A',bc:'#00e676',pri:'RECOMMENDED',pc:'prec',r:'Preferred for treated DCU LPG bullets — zero emission design for flammable high-VP service. Even though treated (low H₂S), the high vapor pressure and flammability of C3/C4 still warrants 53A on larger bullets or high-consequence locations.'},
+    {b:'Plan 52',bc:'#c084fc',pri:'ACCEPTABLE',pc:'prec',r:'Standard secondary containment — OSHA PSM requirement for LPG bullets. Treated stream has no H₂S so buffer fluid degradation is slower than untreated service. Acceptable for lower-consequence locations.'},
+    {b:'Plan 75',bc:'#ffb300',pri:'MANDATORY',pc:'pmust',r:'Treated LPG condenses at the atmospheric gland — condensate must be routed to closed drain/flare header, not open drain. Environmental and fire safety requirement.'},
+    {b:'Plan 72',bc:'#60a5fa',pri:'RECOMMENDED',pc:'prec',r:'N₂ quench prevents air-LPG explosive mixture at the outer seal. Common on offshore, high-consequence, or hazardous-area installations.'},
+    {b:'Plan 11',bc:'#00d4ff',pri:'CONDITIONAL',pc:'popt',r:'Only if VP margin is confirmed adequate (>2 bar sub-cooling at all operating conditions). Engineering verification required. Not recommended without detailed calculation.'}
+  ]},
+{id:'udlpg',nm:'Untreated DCU LPG C3',full:'Untreated DCU LPG C3',icon:'⚠️',fm:'C₃H₈ + H₂S + mercaptans',haz:'high',hc:'#ff3737',
+  vp:'7–16 bar @ 40°C',bp:'< −20°C',tp:'Ambient pressurized',density:'500–530 kg/m³',
+  concern:'HIGH VP + H₂S + COS + MERCAPTANS — TOXIC + CORROSIVE + FLAMMABLE: worst-case LPG service in any plant',
+  plans:[
+    {b:'Plan 53A',bc:'#00e676',pri:'MANDATORY',pc:'pmust',r:'ABSOLUTELY MANDATORY — H₂S content (typically 500–5000 ppm in untreated coker LPG) makes this API 682 Category III toxic service. Zero-emission barrier design required. Leakage direction must always be inward. No compromise.'},
+    {b:'Plan 72',bc:'#60a5fa',pri:'MANDATORY',pc:'pmust',r:'MANDATORY — N₂ atmosphere in the buffer/outer seal zone: (1) prevents H₂S vapor reaching atmosphere at the outer seal, (2) prevents air contact with pyrophoric trace sulfur compounds, (3) eliminates explosive gas mixture formation. Non-negotiable for H₂S service.'},
+    {b:'Plan 62',bc:'#ffb300',pri:'MANDATORY',pc:'pmust',r:'MANDATORY — steam or N₂ quench on atmospheric gland: (1) dilutes/neutralizes any H₂S vapor that bypasses the 53A barrier, (2) prevents mercaptan and COS deposits on atmospheric gland faces, (3) provides final protection layer before TLV exceedance. Three-barrier approach minimum for this service.'},
+    {b:'Plan 75',bc:'#ffb300',pri:'MANDATORY',pc:'pmust',r:'MANDATORY — condensate from untreated LPG contains concentrated H₂S and mercaptans. Open drain is absolutely prohibited. All condensate must go to closed drain with H₂S-compatible design.'},
+    {b:'Plan 65/66',bc:'#ff3737',pri:'RECOMMENDED',pc:'prec',r:'Leakage monitoring for OSHA regulatory compliance — H₂S service requires documented barrier integrity verification. Continuous monitoring of barrier pressure/level provides evidence of containment performance.'}
+  ]}
+];
+
+// COMBINATIONS
+const COMBOS=[
+{n:'11 + 52 + 62',s:'Crude Oil CDU Charge Pump',i:'Refinery · CDU/VDU',
+ps:['11','52','62'],pc:['rgba(0,212,255,.2)','rgba(192,132,252,.2)','rgba(255,179,0,.2)'],tc:['#00d4ff','#c084fc','#ffb300'],
+d:'The crude charge pump handles atmospheric crude with H₂S content (typically 10–500ppm H₂S). Plan 11 provides internal flush for seal face lubrication. Plan 52 gives OSHA PSM-required secondary containment — any inner seal failure captures H₂S-laden crude in the buffer before atmospheric release. Plan 62 steam quench on the atmospheric side prevents NaCl/salt crystallization and neutralizes trace H₂S vapors at the gland.',
+e:'<b>Engineering reason:</b> H₂S content mandates secondary containment (52). Steam quench (62) handles salt crystallization at gland. Plan 11 keeps faces lubricated with the process fluid itself.'},
+{n:'11 + 53A + 62',s:'Hot Vacuum Residue Pump',i:'Refinery · VDU Bottoms',
+ps:['11','53A','62'],pc:['rgba(0,212,255,.2)','rgba(0,230,118,.2)','rgba(255,179,0,.2)'],tc:['#00d4ff','#00e676','#ffb300'],
+d:'VDU bottoms pumps handle 340–380°C H₂S-bearing vacuum residue. Plan 11 self-flush keeps faces lubricated with the residue. Plan 53A pressurized barrier ensures zero emission of this carcinogen-containing (polyaromatic) hot stream. Plan 62 steam quench on the atmospheric gland prevents coke formation from high-temperature residue contacting air.',
+e:'<b>Engineering reason:</b> High temperature + potential carcinogens + coking risk. 53A is mandatory for zero emission. Steam quench (62) is essential to prevent face coking at 340°C+.'},
+{n:'23 + 53A',s:'Boiler Feed Water / Hot Condensate',i:'Power / Refinery Utilities',
+ps:['23','53A'],pc:['rgba(0,191,165,.2)','rgba(0,230,118,.2)'],tc:['#00bfa5','#00e676'],
+d:'BFW pumps at 120–180°C use Plan 23 — the API 682 preferred plan for hot clean service. The isolated self-circulating cooled loop provides dramatically better thermal management than Plan 21. Plan 53A provides secondary containment for the high-energy stored-pressure hot water (BLEVE potential if catastrophic failure).',
+e:'<b>Engineering reason:</b> Plan 23 is the API 682 preferred plan for BFW. 53A adds containment for the high stored energy of high-temperature, high-pressure water.'},
+{n:'32 + 52 + 72',s:'LPG / Propane Bullet Pump',i:'Gas Plant · LPG Storage',
+ps:['32','52','72'],pc:['rgba(0,230,118,.2)','rgba(192,132,252,.2)','rgba(96,165,250,.2)'],tc:['#00e676','#c084fc','#60a5fa'],
+d:'LPG bullet pumps handle propane/butane at high vapor pressure. Plan 32 external flush (or Plan 11 with confirmed sub-cooling) prevents seal face flashing. Plan 52 secondary containment captures any LPG leakage before it reaches atmosphere. Plan 72 N₂ quench in the buffer space prevents formation of explosive LPG/air mixture at the outer seal gland — critical safety layer.',
+e:'<b>Engineering reason:</b> LPG is extremely flammable and volatile. Air must never contact LPG vapors at the seal (72). Secondary containment (52) for OSHA PSM. Plan 75 added in practice for condensate collection.'},
+{n:'11 + 53A + 65',s:'Benzene / Aromatics Pump (BTX)',i:'Aromatics Plant · BTX Unit',
+ps:['11','53A','65'],pc:['rgba(0,212,255,.2)','rgba(0,230,118,.2)','rgba(255,55,55,.2)'],tc:['#00d4ff','#00e676','#ff3737'],
+d:'Benzene is a IARC Group 1 carcinogen with strict OSHA MACT exposure limits (0.5 ppm PEL, 1 ppm STEL). Plan 11 internal flush. Plan 53A pressurized barrier is MANDATORY for MACT compliance — zero atmospheric benzene emission by design. Plan 65 provides the quantitative leakage monitoring data required for MACT documentation and compliance demonstration.',
+e:'<b>Engineering reason:</b> Benzene MACT legally requires demonstrated compliance. 53A ensures zero emission (physical compliance). Plan 65 provides the required measurement data for regulatory documentation.'},
+{n:'21 + 52',s:'Hot Sour Crude / Naphtha Pump',i:'Refinery · Hot Crude Pre-heat',
+ps:['21','52'],pc:['rgba(0,191,165,.2)','rgba(192,132,252,.2)'],tc:['#00bfa5','#c084fc'],
+d:'Pre-heat train crude pumps at 120–200°C with H₂S content (sour crude service). Plan 21 cooled flush reduces seal chamber temperature protecting elastomers. Plan 52 secondary containment required for the H₂S-bearing hot crude stream under OSHA PSM.',
+e:'<b>Engineering reason:</b> Temperature reduction protects seal materials at >120°C (Plan 21). Secondary containment mandatory for H₂S-bearing sour crude (Plan 52).'},
+{n:'31 + 62',s:'Sandy Crude / Upstream Production',i:'Upstream · Production Facilities',
+ps:['31','62'],pc:['rgba(255,179,0,.2)','rgba(255,109,0,.2)'],tc:['#ffb300','#ff6d00'],
+d:'Upstream crude pumps with sand and production solids content. Plan 31 cyclone separator removes coarse sand/solids before they damage seal faces — enabling internal process flush without an external clean source. Plan 62 steam/water quench on the atmospheric gland handles produced water salt crystallization and minor H₂S at the gland area.',
+e:'<b>Engineering reason:</b> Sandy crude cannot use plain Plan 11 — cyclone enables internal flush on dirty service. Quench handles scale formation at atmospheric gland common in production service.'},
+{n:'53A + 72 + 62',s:'Untreated DCU LPG C3',i:'Refinery · Coker LPG',
+ps:['53A','72','62'],pc:['rgba(0,230,118,.2)','rgba(96,165,250,.2)','rgba(255,179,0,.2)'],tc:['#00e676','#60a5fa','#ffb300'],
+d:'Untreated coker LPG C3 is the most hazardous common LPG service: high VP + H₂S + COS + mercaptans. Plan 53A mandatory for zero H₂S emission (Cat. III toxic). Plan 72 N₂ buffer provides inert atmosphere to prevent H₂S vapor reaching atmosphere at the outer seal. Plan 62 steam/N₂ quench on the atmospheric gland is the final barrier — neutralizes trace H₂S and prevents mercaptan deposits. Three-barrier approach.',
+e:'<b>Engineering reason:</b> The triple barrier (53A+72+62) is the minimum acceptable design for untreated DCU LPG. H₂S is immediately dangerous (10ppm IDLH immediate danger). No single-barrier design is acceptable.'},
+{n:'75 + 53A',s:'LPG Vapor Pressure Service',i:'Gas Fractionation · Storage Bullets',
+ps:['75','53A'],pc:['rgba(255,179,0,.2)','rgba(0,230,118,.2)'],tc:['#ffb300','#00e676'],
+d:'Propane, butane, and mixed LPG storage and transfer pumps. Plan 75 collects condensate that forms at the cooler atmospheric gland end of the seal — LPG condenses here in hot ambient conditions. Plan 53A pressurized barrier provides zero atmospheric emission of the highly flammable high-VP product. This combination is the standard for above-ground pressurized LPG bullet pumps.',
+e:'<b>Engineering reason:</b> VP fluids always condense at the atmospheric gland — Plan 75 captures this mandatory. 53A ensures no product vapor emission to atmosphere. The standard combination for LPG bullets.'},
+{n:'32 + 53A + 62',s:'FCC Catalyst Slurry Pump',i:'Refinery · FCC Unit',
+ps:['32','53A','62'],pc:['rgba(0,230,118,.2)','rgba(0,230,118,.2)','rgba(255,179,0,.2)'],tc:['#00e676','#00e676','#ffb300'],
+d:'FCC slurry circulating pumps operate at 300–380°C with highly abrasive equilibrium catalyst (E-cat) in the slurry. Plan 32 external flush (light cycle oil or stripped condensate) keeps abrasive catalyst off the seal faces — no internal plan can work on this service. Plan 53A ensures zero emission of the hot carcinogen-containing (PAH) slurry stream. Plan 62 steam quench prevents coke formation on the atmospheric gland face.',
+e:'<b>Engineering reason:</b> FCC slurry is too abrasive for any internal flush plan — only Plan 32 works. 53A for containment of hot hazardous slurry. Steam quench (62) essential at >300°C to prevent coking.'},
+{n:'13 + 53B',s:'High-P Hydrocracker Feed Pump',i:'Refinery · Hydrocracker',
+ps:['13','53B'],pc:['rgba(0,212,255,.2)','rgba(0,230,118,.2)'],tc:['#00d4ff','#00e676'],
+d:'High-pressure hydrocracker feed pumps (>80–150 bar discharge pressure) handling high-P clean hydrocarbon. Plan 13 pumping ring returns flush to suction — dramatically reduces seal face pressure which would otherwise be very high at these discharge pressures. Plan 53B bladder accumulator provides pressurized barrier containment while accommodating the significant thermal and pressure cycling in this service.',
+e:'<b>Engineering reason:</b> At very high P (>80 bar), Plan 13 is essential to reduce seal face closing loads. Plan 53B chosen over 53A because the bladder better handles pressure cycling in high-P injection service.'},
+{n:'11 + 52 + 65',s:'Amine (DEA/MEA) Unit Pump',i:'Gas Plant · Amine Unit',
+ps:['11','52','65'],pc:['rgba(0,212,255,.2)','rgba(192,132,252,.2)','rgba(255,55,55,.2)'],tc:['#00d4ff','#c084fc','#ff3737'],
+d:'Rich and lean amine pumps handling DEA, MEA, or MDEA for sour gas sweetening. Plan 11 self-flush keeps seal faces lubricated with the amine. Plan 52 secondary containment captures H₂S-laden rich amine leakage. Plan 65 leakage detection for LDAR compliance. In practice, Plan 62 steam quench is often added to prevent amine crystallization on the atmospheric gland face.',
+e:'<b>Engineering reason:</b> Rich amine carries H₂S — containment (52) required. LDAR monitoring (65) for regulatory compliance. Amine crystallizes at atmospheric conditions — Plan 62 addition common.'}
+];
+
+// COMPARISON
+const CMP=[
+  {id:'11',n:'Self-flush',ar:'1',pr:'= Discharge',src:'Internal',co:'No',di:'No',du:'No',tx:'Limited',hc:'Clean HC'},
+  {id:'12',n:'Reverse circ.',ar:'1',pr:'= Discharge',src:'Internal',co:'No',di:'No',du:'No',tx:'Limited',hc:'Clean HC, vertical pumps'},
+  {id:'13',n:'Suction return',ar:'1',pr:'= Suction (LOW)',src:'Internal',co:'No',di:'No',du:'No',tx:'Limited',hc:'High-P clean HC'},
+  {id:'14',n:'Plan 11+13',ar:'1',pr:'Dynamic',src:'Internal',co:'No',di:'No',du:'No',tx:'Limited',hc:'Clean HC, max circ.'},
+  {id:'21',n:'Cooled flush',ar:'1',pr:'= Discharge',src:'Int. cooled',co:'Yes',di:'No',du:'No',tx:'No',hc:'Hot HC >80°C'},
+  {id:'22',n:'Cooled+strainer',ar:'1',pr:'= Discharge',src:'Cooled+filtered',co:'Yes',di:'Partial',du:'No',tx:'No',hc:'Hot HC with fines'},
+  {id:'23',n:'Self-contained',ar:'1',pr:'Low (isolated)',src:'Isolated loop',co:'Best',di:'No',du:'No',tx:'No',hc:'Hot HC >150°C · BFW'},
+  {id:'31',n:'Cyclone sep.',ar:'1',pr:'= Discharge',src:'Int. cleaned',co:'No',di:'>74µm',du:'No',tx:'No',hc:'Crude with solids'},
+  {id:'32',n:'External flush',ar:'1',pr:'Flush > Seal P',src:'External',co:'Ext.',di:'Yes',du:'No',tx:'Possible',hc:'Slurry, FCC, asphalt'},
+  {id:'41',n:'Cyclone+cooler',ar:'1',pr:'= Discharge',src:'Cleaned+cooled',co:'Yes',di:'>74µm',du:'No',tx:'No',hc:'Hot dirty HC'},
+  {id:'52',n:'Unpressurized buffer',ar:'2',pr:'Buffer < Process',src:'Ext. buffer',co:'Opt.',di:'N/A',du:'Yes',tx:'Moderate',hc:'Sour crude, H₂S 50–500ppm'},
+  {id:'53A',n:'Pressurized reservoir',ar:'3',pr:'Barrier > Process',src:'Ext. pressurized',co:'Opt.',di:'N/A',du:'Yes',tx:'ZERO EMISSION',hc:'Benzene, H₂S>500, Cat.III'},
+  {id:'53B',n:'Bladder accum.',ar:'3',pr:'Barrier > Process',src:'Bladder accum.',co:'Opt.',di:'N/A',du:'Yes',tx:'ZERO EMISSION',hc:'Cat.III thermal cycling'},
+  {id:'53C',n:'Piston accum.',ar:'3',pr:'Barrier > Process',src:'Piston accum.',co:'Opt.',di:'N/A',du:'Yes',tx:'ZERO EMISSION',hc:'High-P Cat.III'},
+  {id:'54',n:'Pressurized central',ar:'3',pr:'Central > All',src:'Central system',co:'Centr.',di:'N/A',du:'Yes',tx:'ZERO EMISSION',hc:'Large plant Cat.III'},
+  {id:'55',n:'Unpressurized central',ar:'2',pr:'Central < Process',src:'Central system',co:'Centr.',di:'N/A',du:'Yes',tx:'Moderate',hc:'Large plant hazardous'},
+  {id:'62',n:'Quench+drain',ar:'1',pr:'Atmospheric',src:'Quench utility',co:'Yes',di:'N/A',du:'N/A',tx:'Partial (outer)',hc:'Caustic, coking, sour water'},
+  {id:'65',n:'Leak detection',ar:'1',pr:'Atmospheric',src:'Drain collect',co:'No',di:'N/A',du:'N/A',tx:'Detection only',hc:'LDAR, benzene MACT'},
+  {id:'72',n:'N₂ quench',ar:'2',pr:'Below Process',src:'N₂ supply',co:'No',di:'N/A',du:'Yes',tx:'Air exclusion',hc:'LPG, pyrophoric, LNG'},
+  {id:'74',n:'Pressurized gas',ar:'3',pr:'Barrier > Process',src:'High-P N₂',co:'No',di:'N/A',du:'Yes',tx:'ZERO EMISSION',hc:'Toxic gas, H₂S compressor'},
+  {id:'75',n:'Condensate drain',ar:'1',pr:'Atmospheric',src:'Drain collect',co:'No',di:'N/A',du:'N/A',tx:'Environmental',hc:'LPG, propylene, light ends'},
+  {id:'76',n:'Unpressurized gas',ar:'2',pr:'Below Process',src:'Gas buffer',co:'No',di:'N/A',du:'Yes',tx:'Vent monitoring',hc:'Natural gas, light HC gas'}
+];
+
+// DECISION TREE
+const DT={
+  q1:{q:'What is the physical state of the process fluid?',opts:[
+    {t:'Liquid — well sub-cooled, adequate vapor pressure margin',n:'q2'},
+    {t:'Near boiling / high VP (LPG, propylene, isopentane, light ends)',n:'qvp'},
+    {t:'Gas or vapor phase',n:'qgas'}
+  ]},
+  q2:{q:'Toxicity / hazard classification of the fluid?',opts:[
+    {t:'Clean, non-toxic HC — diesel, naphtha, crude, lube oil',n:'q3c'},
+    {t:'Moderate hazard — sour crude (H₂S 50–500ppm), amine, mild sour water',n:'q3m'},
+    {t:'Highly toxic / Cat. III — benzene, H₂S >500ppm, carcinogens',n:'q3t'}
+  ]},
+  q3c:{q:'Operating temperature?',opts:[
+    {t:'Below 80°C — moderate temperature',n:'q4lt'},
+    {t:'80–150°C — hot service',n:'r21'},
+    {t:'Above 150°C — very hot, clean service',n:'r23'}
+  ]},
+  q4lt:{q:'Process fluid cleanliness?',opts:[
+    {t:'Clean — no particles or solids',n:'r11'},
+    {t:'Coarse solids / sand (>74 micron)',n:'r31'},
+    {t:'Fine solids, high loading, abrasive slurry',n:'r32'}
+  ]},
+  q3m:{q:'Regulatory / safety requirement?',opts:[
+    {t:'Secondary containment required (OSHA PSM / EPA RMP)',n:'r52'},
+    {t:'LDAR / fugitive emission monitoring only',n:'r65'},
+    {t:'Both containment and LDAR monitoring required',n:'r5265'}
+  ]},
+  q3t:{q:'Type of Cat. III toxic service?',opts:[
+    {t:'Carcinogen / benzene — single pump or small plant',n:'r53a'},
+    {t:'H₂S service — multiple pumps in large plant',n:'r54'},
+    {t:'High temperature + carcinogen (hot aromatic, hot H₂S)',n:'r53a62'}
+  ]},
+  qvp:{q:'Hazard level and VP of the fluid?',opts:[
+    {t:'Treated LPG (propane/butane) — flammable, high VP, no H₂S',n:'r53a75'},
+    {t:'Untreated LPG with H₂S (coker LPG) — HIGHEST hazard',n:'r53a72'},
+    {t:'Isopentane / light naphtha — moderate VP, near-ambient BP',n:'r21vp'},
+    {t:'Propylene / butene-1 — very high VP, polymerization risk',n:'r53apoly'}
+  ]},
+  qgas:{q:'Toxicity of the gas/vapor?',opts:[
+    {t:'Highly toxic — H₂S, carcinogenic vapor, toxic organics',n:'r74'},
+    {t:'Flammable gas — natural gas, light HC vapor, moderate hazard',n:'r76'},
+    {t:'Low hazard gas or inert gas',n:'r71'}
+  ]},
+  r11:{r:1,p:'Plan 11',pn:'Self-flush from discharge',w:'Clean, moderate-temperature hydrocarbon — the simplest and most reliable plan. Internal flush from discharge keeps faces lubricated. No external utilities. Most economical for clean HC service. The benchmark plan.'},
+  r21:{r:1,p:'Plan 21',pn:'Cooled flush (heat exchanger)',w:'Hot HC (80–150°C) requires temperature reduction at seal face. Plan 21 passes discharge through a water-cooled exchanger before the seal. Protects elastomers and maintains VP margin. Simple, proven, widely used in refinery hot crude service.'},
+  r23:{r:1,p:'Plan 23',pn:'Self-contained cooled loop — API preferred',w:'API 682 preferred plan for hot clean service >150°C. Isolated circulating loop gives the best thermal performance — seal faces run 30–60°C below process temperature. Mandatory for BFW, hot oil, and VGO service.'},
+  r31:{r:1,p:'Plan 31',pn:'Cyclone separator',w:'Coarse solids (>74µm) present in process. Cyclone removes particles centrifugally — clean overflow to seal, heavy underflow to suction. No external flush needed. Effective when fluid SG differs from solid particles.'},
+  r32:{r:1,p:'Plan 32',pn:'External flush injection',w:'Process fluid too dirty/abrasive to use as flush. External clean fluid injected above seal chamber pressure. Seal faces always see clean fluid. The definitive solution for extreme dirty, abrasive, or hostile service.'},
+  r52:{r:1,p:'Plan 52',pn:'Unpressurized dual-seal buffer',w:'OSHA PSM / EPA RMP secondary containment. Arrangement 2 dual seal — any inner seal leakage is captured in the buffer reservoir, not released to atmosphere. Buffer level/pressure change provides early warning.'},
+  r65:{r:1,p:'Plan 65',pn:'Leakage detection and collection',w:'LDAR / MACT regulatory compliance. Collects and measures seal leakage quantitatively. Provides documented data for regulatory compliance. Note: detection only — does not prevent emission.'},
+  r5265:{r:1,p:'Plan 52 + 65',pn:'Buffer containment + leakage detection',w:'Complete compliance: secondary containment (52) AND leakage monitoring (65). Plan 52 captures inner seal leakage; Plan 65 measures leakage from outer seal. Full OSHA PSM and LDAR compliance.'},
+  r53a:{r:1,p:'Plan 53A',pn:'Pressurized barrier reservoir — ZERO EMISSION',w:'API 682 Category III carcinogenic / highly toxic service. Pressurized barrier above process P guarantees inward leakage direction — zero atmospheric emission by design. Mandatory for benzene, carcinogens, H₂S >500ppm.'},
+  r54:{r:1,p:'Plan 54',pn:'Pressurized central system',w:'Large plant with many Cat. III pumps. One central pressurized barrier system serves multiple seals. More reliable and economical at scale than individual accumulators. Standard in large aromatic plants and CDU/VDU units.'},
+  r53a62:{r:1,p:'Plan 53A + 62',pn:'Pressurized barrier + steam quench',w:'Hot carcinogenic service needs both zero-emission barrier (53A) AND steam quench (62) to prevent coking/crystallization at the atmospheric gland. Combined approach for hot toxic HC at elevated temperature.'},
+  r53a75:{r:1,p:'Plan 53A + 75',pn:'Pressurized barrier + condensate drain',w:'High-VP treated LPG service. Plan 53A pressurized barrier = zero atmospheric emission of flammable LPG. Plan 75 captures condensate at the atmospheric gland. The standard combination for pressurized LPG bullet pumps.'},
+  r53a72:{r:1,p:'53A + 72 + 62',pn:'Triple barrier — untreated toxic LPG',w:'Worst-case service: high VP + H₂S + sulfur compounds. Plan 53A mandatory for zero H₂S emission. Plan 72 N₂ buffer critical to exclude air from H₂S environment. Plan 62 final quench layer on atmospheric gland. Three barriers minimum.'},
+  r21vp:{r:1,p:'Plan 21 + 65',pn:'Cooled flush + leakage detection',w:'Near-ambient BP fluid (isopentane BP=28°C). Plan 21 cooled flush essential — cooling critical to maintain sub-cooled condition. Plan 65 for LDAR compliance monitoring. Engineering verification of sub-cooling is required.'},
+  r53apoly:{r:1,p:'Plan 53A + 72',pn:'Pressurized barrier + N₂ quench',w:'Very high VP + polymerization risk (propylene, butene-1). Plan 53A ensures zero emission and excludes oxygen from outer seal. Plan 72 N₂ in buffer cavity prevents oxygen contact with monomer vapors — critical to prevent polymerization initiation.'},
+  r74:{r:1,p:'Plan 74',pn:'Pressurized gas barrier — ZERO EMISSION',w:'Highly toxic gas: zero emission mandatory. High-pressure N₂ barrier above process P ensures gas leaks inward only. The gas-seal equivalent of Plan 53A. Required for H₂S compressors, toxic gas handling, carcinogenic vapor service.'},
+  r76:{r:1,p:'Plan 76',pn:'Unpressurized gas buffer',w:'Flammable gas dual-seal service. Below-process-pressure gas buffer safely collects inner seal leakage and routes to flare/vent. Vent flow measurement monitors inner seal health continuously.'},
+  r71:{r:1,p:'Plan 71',pn:'N₂ sweep (dry gas seal)',w:'Low-hazard gas with dry gas seal. N₂ sweep purges any process gas from seal housing to safe vent. Simplest gas seal plan. Requires only N₂ supply and vent connection.'}
+};
+
+// ════════════════════════════════════════════
+// CANVAS ENGINE
+// ════════════════════════════════════════════
+let MC,GC,SC,gv=0.5,gtgt=0.5,T=0,rafId,curP='p11',curS=null;
+
+function initCanvases(){
+  MC=document.getElementById('MC'); GC=document.getElementById('GC'); SC=document.getElementById('SC');
+  MC.width=760; MC.height=342; GC.width=196; GC.height=115; SC.width=840; SC.height=472;
+  rafId=requestAnimationFrame(loop);
+}
+function loop(ts){T=ts*.001; drawMain(); drawGauge(); if(curS)drawService(); rafId=requestAnimationFrame(loop);}
+
+// ── HELPERS ──
+const R=(ctx,x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()};
+const arr=(ctx,x1,y1,x2,y2,col,cls)=>{ctx.save();ctx.strokeStyle=col;ctx.lineWidth=cls||4;ctx.setLineDash([9,7]);ctx.lineDashOffset=-(T%1*16)*10;ctx.shadowBlur=8;ctx.shadowColor=col;ctx.beginPath();ctx.moveTo(x1,y1);[...Array(100)].reduce((_,__,i)=>{},0);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);ctx.shadowBlur=0;ctx.restore()};
+const pipe=(ctx,pts,col,w,flow,spd)=>{ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w||5;ctx.lineCap='round';ctx.lineJoin='round';if(flow){ctx.setLineDash([10,8]);ctx.lineDashOffset=-(T*(spd||70))%18}ctx.shadowBlur=10;ctx.shadowColor=col;ctx.beginPath();ctx.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)ctx.lineTo(pts[i],pts[i+1]);ctx.stroke();ctx.setLineDash([]);ctx.shadowBlur=0;ctx.restore()};
+const comp=(ctx,x,y,w,h,lbl,col,icon)=>{const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,col+'28');g.addColorStop(1,col+'0a');ctx.fillStyle=g;R(ctx,x,y,w,h,5);ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=1.5;R(ctx,x,y,w,h,5);ctx.stroke();ctx.fillStyle=col;ctx.font='bold 11px Share Tech Mono';ctx.textAlign='center';if(icon)ctx.fillText(icon,x+w/2,y+h/2-4);ctx.font='9px Share Tech Mono';ctx.fillText(lbl,x+w/2,y+h/2+9)};
+const txt=(ctx,x,y,s,col,align,sz)=>{ctx.fillStyle=col;ctx.font=`${sz||9}px Share Tech Mono`;ctx.textAlign=align||'left';ctx.fillText(s,x,y)};
+const bg=(ctx,w,h)=>{ctx.clearRect(0,0,w,h);ctx.fillStyle='#020510';ctx.fillRect(0,0,w,h);ctx.strokeStyle='rgba(0,212,255,0.03)';ctx.lineWidth=1;for(let x=0;x<w;x+=44){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<h;y+=44){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}};
+
+function drawPump(ctx,cx,cy,r,spd){
+  // Casing
+  ctx.fillStyle='rgba(8,16,32,0.9)';ctx.strokeStyle='#1e3a5a';ctx.lineWidth=10;
+  ctx.beginPath();ctx.arc(cx,cy,r+20,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.strokeStyle='#243a5a';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(cx,cy,r+20,0,Math.PI*2);ctx.stroke();
+  // Impeller
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(T*spd);
+  for(let i=0;i<6;i++){
+    ctx.rotate(Math.PI/3);
+    ctx.fillStyle=`rgba(0,180,255,${0.12+0.05*Math.sin(T*3+i)})`;
+    ctx.strokeStyle='rgba(0,200,255,0.7)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(r*.45,r*.22,r*.88,r*.12);ctx.quadraticCurveTo(r*.72,r*.52,r*.28,r*.62);ctx.closePath();ctx.fill();ctx.stroke();
+  }
+  ctx.restore();
+  // Hub
+  ctx.fillStyle='#0a1828';ctx.strokeStyle='#00d4ff';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(0,212,255,0.8)';ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fill();
+  // Shaft stub
+  ctx.fillStyle='#00d4ff';ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;
+  ctx.fillRect(cx+r+20,cy-4,20,8);ctx.strokeRect(cx+r+20,cy-4,20,8);
+}
+
+function drawSeal(ctx,x,y,w,h,type,bc,isInner){
+  const g=ctx.createLinearGradient(x,y,x+w,y);
+  g.addColorStop(0,'rgba(8,16,32,.95)');g.addColorStop(.5,'rgba(12,22,40,.95)');g.addColorStop(1,'rgba(8,16,32,.95)');
+  ctx.fillStyle=g;R(ctx,x,y,w,h,5);ctx.fill();
+  ctx.strokeStyle='#1a3050';ctx.lineWidth=1.5;R(ctx,x,y,w,h,5);ctx.stroke();
+  const mid=x+w/2;
+  if(type==='single'){
+    ctx.fillStyle='#142238';ctx.fillRect(mid-16,y+8,32,h-16);
+    ctx.strokeStyle=bc||'#00d4ff';ctx.lineWidth=2;ctx.strokeRect(mid-16,y+8,32,h-16);
+    ctx.strokeStyle=bc||'#00d4ff';ctx.lineWidth=1;ctx.setLineDash([3,2]);
+    ctx.beginPath();ctx.moveTo(mid,y+10);ctx.lineTo(mid,y+h-10);ctx.stroke();ctx.setLineDash([]);
+    // glow
+    const rg=ctx.createRadialGradient(mid,y+h/2,0,mid,y+h/2,22);
+    rg.addColorStop(0,(bc||'#00d4ff')+'33');rg.addColorStop(1,'transparent');
+    ctx.fillStyle=rg;ctx.fillRect(mid-22,y+6,44,h-12);
+  } else {
+    // Inner seal
+    ctx.fillStyle='#142238';ctx.fillRect(x+6,y+7,14,h-14);
+    ctx.strokeStyle='#00d4ff';ctx.lineWidth=1.5;ctx.strokeRect(x+6,y+7,14,h-14);
+    // Buffer cavity
+    const pct=Math.abs(Math.sin(T*.4));
+    ctx.fillStyle=`rgba(${bc==='#c084fc'?'150,80,240':'0,200,100'},${0.05+0.03*pct})`;
+    ctx.fillRect(x+20,y+4,w-40,h-8);
+    ctx.strokeStyle=bc==='#c084fc'?'rgba(150,80,240,.3)':'rgba(0,200,100,.3)';
+    ctx.lineWidth=1;ctx.setLineDash([3,2]);ctx.strokeRect(x+20,y+4,w-40,h-8);ctx.setLineDash([]);
+    // Outer seal
+    ctx.fillStyle='#142238';ctx.fillRect(x+w-20,y+7,14,h-14);
+    ctx.strokeStyle=bc||'#00e676';ctx.lineWidth=1.5;ctx.strokeRect(x+w-20,y+7,14,h-14);
+  }
+}
+
+// watermark in canvas
+function wm(ctx,w,h){ctx.save();ctx.font='700 9px DM Mono,monospace';ctx.fillStyle='rgba(150,200,255,0.18)';ctx.textAlign='right';ctx.fillText('⬡ YUJANK',w-10,h-10);ctx.restore()}
+
+// ── PLAN SIMULATIONS ──
+function drawMain(){
+  if(!MC)return;const ctx=MC.getContext('2d'),W=760,H=342;
+  bg(ctx,W,H);
+  const plan=curP;
+  switch(plan){
+    case'p11':sim11(ctx,W,H);break; case'p12':sim12(ctx,W,H);break;
+    case'p13':sim13(ctx,W,H);break; case'p14':sim14(ctx,W,H);break;
+    case'p21':sim21(ctx,W,H);break; case'p22':sim22(ctx,W,H);break;
+    case'p23':sim23(ctx,W,H);break; case'p31':sim31(ctx,W,H);break;
+    case'p32':sim32(ctx,W,H);break; case'p41':sim41(ctx,W,H);break;
+    case'p52':sim52(ctx,W,H);break; case'p53a':sim53a(ctx,W,H);break;
+    case'p53b':sim53b(ctx,W,H);break; case'p53c':sim53c(ctx,W,H);break;
+    case'p54':sim54(ctx,W,H);break; case'p55':sim55(ctx,W,H);break;
+    case'p62':sim62(ctx,W,H);break; case'p65':sim65(ctx,W,H);break;
+    case'p72':sim72(ctx,W,H);break; case'p74':sim74(ctx,W,H);break;
+    case'p75':sim75(ctx,W,H);break; case'p76':sim76(ctx,W,H);break;
+    default:sim11(ctx,W,H);
+  }
+  wm(ctx,W,H);
+}
+
+function sim11(ctx,W,H){
+  const cx=220,cy=175,r=65;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,460,100,110,150,'single','#00d4ff');
+  // Discharge up and over to seal
+  pipe(ctx,[cx+r+20,cy-25,cx+r+20,55,610,55,610,98],'#ff6b35',5,true,75);
+  // Flush line back from discharge tapping to seal top
+  pipe(ctx,[575,55,575,98],'#00d4ff',4,true,80);
+  // Orifice
+  ctx.fillStyle='#ffb300';ctx.strokeStyle='#ffb300';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(575,55,6,0,Math.PI*2);ctx.fill();
+  txt(ctx,582,52,'ORIFICE','#ffb300');
+  // Suction
+  pipe(ctx,[cx-r-20,cy,80,cy],'#ff6b35',5,true,65);
+  txt(ctx,85,cy-8,'SUCTION','rgba(255,107,53,0.7)');
+  txt(ctx,cx+r+25,48,'DISCHARGE','rgba(255,107,53,0.8)');
+  txt(ctx,515,95,'FLUSH IN','rgba(0,212,255,0.7)');
+  txt(ctx,510,128,'P seal =\nP discharge','rgba(0,212,255,0.5)','center',9);
+}
+function sim12(ctx,W,H){
+  const cx=210,cy=175,r=62;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,440,95,110,155,'single','#00d4ff');
+  pipe(ctx,[cx+r+20,cy-20,cx+r+20,55,590,55],'#ff6b35',5,true,70);
+  pipe(ctx,[590,55,590,93],'#00d4ff',4,true,80);
+  pipe(ctx,[440,230,400,230,400,280,85,280,85,cy+20],'#3b82f6',3.5,true,55);
+  pipe(ctx,[cx-r-20,cy,85,cy],'#ff6b35',5,true,65);
+  txt(ctx,90,273,'→ SUCTION','#3b82f6');
+  txt(ctx,450,88,'FLUSH BOTTOM→TOP','rgba(0,212,255,0.6)');
+}
+function sim13(ctx,W,H){
+  const cx=210,cy=175,r=62;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,440,95,110,155,'single','#3b82f6');
+  comp(ctx,496,210,50,38,'RING','#00bfa5','⚙');
+  pipe(ctx,[490,248,490,290,600,290,600,175,640,175],'#3b82f6',3.5,true,60);
+  txt(ctx,645,179,'→ SUCT','#3b82f6');
+  pipe(ctx,[cx-r-20,cy,85,cy],'#ff6b35',5,true,65);
+  txt(ctx,492,88,'P seal ≈ P suction','rgba(96,165,250,0.6)','center');
+}
+function sim14(ctx,W,H){
+  const cx=210,cy=175,r=62;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,440,95,110,155,'single','#00d4ff');
+  comp(ctx,496,210,50,38,'RING','#00bfa5','⚙');
+  pipe(ctx,[cx+r+20,cy-20,cx+r+20,55,490,55,490,93],'#ff6b35',4,true,70);
+  pipe(ctx,[490,248,490,285,610,285,610,175,650,175],'#3b82f6',3.5,true,55);
+  txt(ctx,655,179,'SUCT','#3b82f6');
+  pipe(ctx,[cx-r-20,cy,85,cy],'#ff6b35',4,true,65);
+  txt(ctx,480,50,'DISC→IN','rgba(255,107,53,0.7)','center');
+  txt(ctx,480,300,'OUT→SUCTION','rgba(59,130,246,0.7)','center');
+}
+function sim21(ctx,W,H){
+  const cx=200,cy=190,r=60;
+  drawPump(ctx,cx,cy,r,2.5);
+  comp(ctx,310,85,90,65,'COOLER','#00bfa5','≋');
+  drawSeal(ctx,490,110,105,145,'single','#00d4ff');
+  pipe(ctx,[cx+r+20,cy-20,cx+r+20,60,308,60],'#ff6b35',4,true,70);
+  pipe(ctx,[400,118,488,118],'#00bfa5',4,true,80);
+  txt(ctx,360,112,'COOLED','#00bfa5','center');
+  txt(ctx,355,82,'CW↑↓','#246060','center');
+  pipe(ctx,[cx-r-20,cy,80,cy],'#ff6b35',4,true,65);
+}
+function sim22(ctx,W,H){
+  const cx=180,cy=190,r=55;
+  drawPump(ctx,cx,cy,r,2.5);
+  comp(ctx,260,90,80,60,'STRAINER','#ffb300','▽');
+  comp(ctx,365,90,85,60,'COOLER','#00bfa5','≋');
+  drawSeal(ctx,490,110,105,140,'single','#00d4ff');
+  pipe(ctx,[cx+r+20,cy-15,cx+r+20,60,258,60],'#ff6b35',4,true,70);
+  pipe(ctx,[340,120,363,120],'#ffb300',3.5,true,75);
+  pipe(ctx,[450,120,488,120],'#00bfa5',3.5,true,80);
+  pipe(ctx,[cx-r-20,cy,80,cy],'#ff6b35',4,true,65);
+}
+function sim23(ctx,W,H){
+  const cx=200,cy=185,r=62;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,415,105,105,150,'single','#00d4ff');
+  comp(ctx,495,110,50,50,'RING','#00e676','⚙');
+  comp(ctx,580,100,85,60,'COOLER','#00bfa5','≋');
+  // Isolated loop
+  pipe(ctx,[520,110,540,110,540,85,580,85],'#ff6b35',3,true,80);
+  pipe(ctx,[580,150,540,150,540,165,520,165],'#00d4ff',3,true,80);
+  ctx.save();ctx.strokeStyle='rgba(0,200,100,0.2)';ctx.lineWidth=1;ctx.setLineDash([5,4]);
+  R(ctx,405,95,300,170,8);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+  txt(ctx,555,250,'ISOLATED THERMAL LOOP','rgba(0,230,118,0.5)','center');
+  pipe(ctx,[cx+r+20,cy-15,cx+r+20,55,670,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,80,cy],'#ff6b35',4,true,65);
+}
+function sim31(ctx,W,H){
+  const cx=185,cy=185,r=58;
+  drawPump(ctx,cx,cy,r,2.5);
+  // Cyclone
+  ctx.fillStyle='rgba(255,179,0,0.08)';ctx.strokeStyle='#ffb300';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(295,65);ctx.lineTo(355,65);ctx.lineTo(340,135);ctx.lineTo(325,160);ctx.lineTo(310,135);ctx.closePath();ctx.fill();ctx.stroke();
+  txt(ctx,325,102,'CYCLONE','#ffb300','center');
+  drawSeal(ctx,450,105,105,145,'single','#00d4ff');
+  pipe(ctx,[cx+r+20,cy-15,cx+r+20,45,290,45],'#ff6b35',4,true,70);
+  pipe(ctx,[355,90,420,90,420,135,448,135],'#00d4ff',3.5,true,80);
+  pipe(ctx,[325,160,325,220,cx,220,cx,cy+r+18],'#888',2.5,true,35);
+  txt(ctx,265,215,'SOLIDS→SUCTION','rgba(136,136,136,0.6)');
+  txt(ctx,358,85,'CLEAN','#00d4ff');
+  pipe(ctx,[cx-r-20,cy,80,cy],'#ff6b35',4,true,65);
+}
+function sim32(ctx,W,H){
+  const cx=220,cy=185,r=62;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,450,105,110,150,'single','#00e676');
+  comp(ctx,55,H-115,130,60,'EXTERNAL\nFLUSH SRC','#00e676','⊛');
+  pipe(ctx,[120,H-115,120,160,448,160],'#00e676',4,true,80);
+  pipe(ctx,[cx+r+20,cy-15,cx+r+20,55,650,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,80,cy],'#ff6b35',4,true,65);
+  txt(ctx,505,100,'FLUSH P\n> SEAL P','rgba(0,230,118,0.6)','center',9);
+  ctx.fillStyle='#ff3737';ctx.font='bold 9px Share Tech Mono';ctx.textAlign='center';
+  ctx.fillText('EXTERNAL SOURCE REQUIRED',W/2,H-12);
+}
+function sim41(ctx,W,H){
+  const cx=170,cy=185,r=52;
+  drawPump(ctx,cx,cy,r,2.5);
+  ctx.fillStyle='rgba(255,179,0,0.08)';ctx.strokeStyle='#ffb300';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(248,60);ctx.lineTo(298,60);ctx.lineTo(285,118);ctx.lineTo(273,135);ctx.lineTo(261,118);ctx.closePath();ctx.fill();ctx.stroke();
+  txt(ctx,273,92,'CYCLONE','#ffb300','center');
+  comp(ctx,320,65,85,60,'COOLER','#00bfa5','≋');
+  drawSeal(ctx,470,108,100,140,'single','#00d4ff');
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,42,243,42],'#ff6b35',4,true,70);
+  pipe(ctx,[298,88,318,88],'#ffb300',3,true,75);
+  pipe(ctx,[405,95,468,95],'#00bfa5',3.5,true,80);
+  pipe(ctx,[cx-r-20,cy,75,cy],'#ff6b35',4,true,65);
+}
+function sim52(ctx,W,H){
+  const cx=170,cy=185,r=55;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,358,105,130,155,'dual','#c084fc');
+  comp(ctx,560,105,80,130,'BUFFER\nPOT','#c084fc','⊕');
+  pipe(ctx,[488,135,540,135,540,130,558,130],'#c084fc',3,true,45);
+  pipe(ctx,[558,175,540,175,540,180,488,180],'#c084fc',3,true,45);
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,55,356,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,75,cy],'#ff6b35',4,true,65);
+  txt(ctx,600,195,'ATMOS.','#c084fc','center',8);
+  txt(ctx,600,207,'BELOW P','#c084fc','center',8);
+  ctx.fillStyle='rgba(239,68,68,0.6)';ctx.font='bold 8px Share Tech Mono';ctx.textAlign='center';
+  ctx.fillText('SECONDARY CONTAINMENT — ARRANGEMENT 2',W/2,H-12);
+}
+function sim53a(ctx,W,H){
+  const cx=160,cy=185,r=52;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,345,100,135,160,'dual','#00e676');
+  comp(ctx,555,100,90,140,'BARRIER\nRES.','#00e676','⊛');
+  txt(ctx,620,90,'N₂↓','rgba(0,230,118,0.7)',undefined,12);
+  pipe(ctx,[553,130,480,130],'#00e676',3.5,true,60);
+  pipe(ctx,[480,170,553,170],'#00e676',3,true,60);
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,55,343,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,72,cy],'#ff6b35',4,true,65);
+  ctx.fillStyle='rgba(0,230,118,0.8)';ctx.font='bold 8px Share Tech Mono';ctx.textAlign='center';
+  ctx.fillText('P BARRIER > P PROCESS — ZERO ATMOSPHERIC EMISSION',W/2,H-12);
+}
+function sim53b(ctx,W,H){
+  const cx=155,cy=185,r=50;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,338,100,130,155,'dual','#00e676');
+  ctx.fillStyle='rgba(0,230,118,0.07)';ctx.strokeStyle='#00e676';ctx.lineWidth=2;
+  R(ctx,540,95,95,145,8);ctx.fill();ctx.stroke();
+  txt(ctx,587,120,'BLADDER','#00e676','center');txt(ctx,587,133,'ACCUM.','#00e676','center');
+  ctx.fillStyle='rgba(0,230,118,0.2)';ctx.strokeStyle='#00e676';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(587,165,28,22,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  txt(ctx,587,162,'N₂|fluid','rgba(0,230,118,0.6)','center',8);
+  txt(ctx,587,175,'bladder','rgba(0,230,118,0.4)','center',7);
+  pipe(ctx,[538,130,468,130],'#00e676',3,true,60);
+  pipe(ctx,[468,170,538,170],'#00e676',3,true,60);
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,55,336,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,70,cy],'#ff6b35',4,true,65);
+}
+function sim53c(ctx,W,H){
+  const cx=155,cy=185,r=50;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,338,100,130,155,'dual','#00e676');
+  ctx.fillStyle='rgba(0,230,118,0.07)';ctx.strokeStyle='#00e676';ctx.lineWidth=2;
+  R(ctx,540,95,95,145,8);ctx.fill();ctx.stroke();
+  txt(ctx,587,118,'PISTON','#00e676','center');txt(ctx,587,131,'ACCUM.','#00e676','center');
+  const py=155+Math.sin(T*.7)*18;
+  ctx.fillStyle='rgba(0,230,118,0.5)';ctx.strokeStyle='#00e676';ctx.lineWidth=2;
+  ctx.fillRect(548,py,78,12);ctx.strokeRect(548,py,78,12);
+  txt(ctx,587,py-5,'N₂↑','rgba(0,230,118,0.5)','center',8);
+  txt(ctx,587,py+26,'fluid↓','rgba(0,230,118,0.5)','center',8);
+  pipe(ctx,[538,130,468,130],'#00e676',3,true,60);
+  pipe(ctx,[468,170,538,170],'#00e676',3,true,60);
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,55,336,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,70,cy],'#ff6b35',4,true,65);
+}
+function sim54(ctx,W,H){
+  const cx=155,cy=185,r=50;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,335,100,130,155,'dual','#00e676');
+  comp(ctx,540,95,110,145,'CENTRAL\nSYSTEM','#00e676','⊛');
+  ctx.strokeStyle='rgba(0,230,118,0.2)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(650,cy-40+i*50);ctx.lineTo(680,cy-40+i*50);ctx.stroke();txt(ctx,682,cy-37+i*50,'→ P'+(i+2),'rgba(0,230,118,0.3)',undefined,8);}
+  ctx.setLineDash([]);
+  pipe(ctx,[538,130,465,130],'#00e676',3.5,true,60);
+  pipe(ctx,[465,170,538,170],'#00e676',3,true,60);
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,55,333,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,70,cy],'#ff6b35',4,true,65);
+  txt(ctx,595,260,'ACTIVE FLOW · MULTIPLE PUMPS','rgba(0,230,118,0.6)','center',8);
+}
+function sim55(ctx,W,H){
+  const cx=155,cy=185,r=50;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,335,100,130,155,'dual','#c084fc');
+  comp(ctx,540,100,105,135,'CENTRAL\nBUFFER','#c084fc','⊕');
+  pipe(ctx,[538,130,465,130],'#c084fc',3,true,45);
+  pipe(ctx,[465,165,538,165],'#c084fc',3,true,45);
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,55,333,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,70,cy],'#ff6b35',4,true,65);
+  txt(ctx,592,250,'P BELOW PROCESS','#c084fc','center',8);
+}
+function sim62(ctx,W,H){
+  const cx=215,cy=185,r=60;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,418,105,110,150,'single','#ff6d00');
+  comp(ctx,590,110,80,52,'QUENCH\nSTEAM','#ffb300','≈');
+  comp(ctx,590,182,80,44,'DRAIN','#3a5070','⬇');
+  pipe(ctx,[588,136,530,136],'#ffb300',3.5,true,80);
+  pipe(ctx,[530,196,588,196],'#888',3,true,30);
+  pipe(ctx,[cx+r+20,cy-15,cx+r+20,55,416,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,80,cy],'#ff6b35',4,true,65);
+  txt(ctx,530,100,'ATM. SIDE QUENCH','rgba(255,179,0,0.6)','center',8);
+}
+function sim65(ctx,W,H){
+  const cx=215,cy=185,r=60;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,418,105,110,150,'single','#ff3737');
+  comp(ctx,598,118,82,90,'DETECT.\nVESSEL','#ff3737','◈');
+  const blink=Math.sin(T*3.5)>0;
+  ctx.fillStyle=blink?'#ff3737':'#3a4a5a';ctx.beginPath();ctx.arc(637,108,5,0,Math.PI*2);ctx.fill();
+  txt(ctx,648,106,'LEVEL SW.','#ff3737',undefined,8);
+  pipe(ctx,[528,185,565,185,565,155,596,155],'#ff3737',2.5,true,35);
+  pipe(ctx,[cx+r+20,cy-15,cx+r+20,55,416,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,80,cy],'#ff6b35',4,true,65);
+  txt(ctx,W/2,H-12,'LDAR / FUGITIVE EMISSION MONITORING','rgba(255,55,55,0.7)','center',8);
+}
+function sim72(ctx,W,H){
+  const cx=155,cy=185,r=50;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,330,100,130,155,'dual','#60a5fa');
+  comp(ctx,535,110,90,100,'N₂\nBUFFER\nLOW P','#60a5fa','≋');
+  pipe(ctx,[533,130,460,130],'#60a5fa',3,true,60);
+  pipe(ctx,[460,165,533,165],'#60a5fa',3,true,60);
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,55,328,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,70,cy],'#ff6b35',4,true,65);
+  txt(ctx,W/2,H-12,'N₂ EXCLUDES AIR FROM SEAL CAVITY','rgba(96,165,250,0.7)','center',8);
+}
+function sim74(ctx,W,H){
+  const cx=150,cy=185,r=48;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,325,95,135,160,'dual','#60a5fa');
+  comp(ctx,535,90,95,150,'HIGH-P\nN₂\nBARRIER','#60a5fa','⬡');
+  pipe(ctx,[533,130,460,130],'#60a5fa',4,true,65);
+  pipe(ctx,[460,175,533,175],'#60a5fa',3,true,65);
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,55,323,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,68,cy],'#ff6b35',4,true,65);
+  ctx.fillStyle='rgba(96,165,250,0.85)';ctx.font='bold 8px Share Tech Mono';ctx.textAlign='center';
+  ctx.fillText('P N₂ > P PROCESS — ZERO GAS EMISSION',W/2,H-12);
+}
+function sim75(ctx,W,H){
+  const cx=215,cy=185,r=60;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,418,105,110,150,'single','#ffb300');
+  comp(ctx,598,120,82,78,'COLLECT.\nVESSEL','#ffb300','⬇');
+  pipe(ctx,[528,190,565,190,565,155,596,155],'#ffb300',2.5,true,35);
+  pipe(ctx,[639,198,639,250,80,250],'#888',2,true,25);
+  txt(ctx,85,258,'→ FLARE/DRAIN','rgba(136,136,136,0.6)');
+  pipe(ctx,[cx+r+20,cy-15,cx+r+20,55,416,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,80,cy],'#ff6b35',4,true,65);
+  txt(ctx,530,98,'VP SERVICE — CONDENSATE COLLECTION','rgba(255,179,0,0.6)','center',8);
+}
+function sim76(ctx,W,H){
+  const cx=155,cy=185,r=50;
+  drawPump(ctx,cx,cy,r,2.5);
+  drawSeal(ctx,330,100,130,155,'dual','#c084fc');
+  comp(ctx,535,110,88,100,'GAS\nBUFFER','#c084fc','≋');
+  pipe(ctx,[533,130,460,130],'#c084fc',3,true,50);
+  pipe(ctx,[575,110,575,60,490,60],'#888',2,true,25);
+  txt(ctx,420,54,'→ VENT/FLARE','rgba(136,136,136,0.6)');
+  ctx.strokeStyle='rgba(150,150,150,0.4)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(575,110,8,0,Math.PI*2);ctx.stroke();
+  txt(ctx,586,113,'FM','rgba(150,150,150,0.4)',undefined,8);
+  pipe(ctx,[cx+r+20,cy-12,cx+r+20,55,328,55],'#ff6b35',4,true,70);
+  pipe(ctx,[cx-r-20,cy,70,cy],'#ff6b35',4,true,65);
+  txt(ctx,W/2,H-12,'VENT FLOW MEASUREMENT = INNER SEAL HEALTH MONITOR','rgba(192,132,252,0.7)','center',8);
+}
+
+// ── GAUGE ──
+function drawGauge(){
+  if(!GC)return;const ctx=GC.getContext('2d'),W=196,H=115,cx=W/2,cy=H-18,r=72;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#f5f7fa';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(15,23,42,0.1)';ctx.lineWidth=11;ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,0);ctx.stroke();
+  const end=Math.PI*(1+gv);
+  const col=gv<.4?'#15803d':gv<.7?'#b45309':'#b91c1c';
+  ctx.strokeStyle=col;ctx.lineWidth=9;
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,end);ctx.stroke();
+  const nx=cx+Math.cos(end)*58,ny=cy+Math.sin(end)*58;
+  ctx.strokeStyle='#0f172a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(nx,ny);ctx.stroke();
+  ctx.fillStyle='#0f172a';ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fill();
+  ctx.font='bold 16px Sora,sans-serif';ctx.fillStyle=col;ctx.textAlign='center';ctx.fillText(Math.round(gv*100)+'%',cx,cy-14);
+  ctx.font='600 7px DM Mono,monospace';ctx.fillStyle='rgba(100,116,139,0.8)';
+  ctx.fillText('LOW',cx-60,cy+12);ctx.fillText('HIGH',cx+52,cy+12);
+  gv+=(gtgt-gv)*.05;
+}
+
+// ── SERVICE CANVAS ──
+function drawService(){
+  if(!SC||!curS)return;
+  const ctx=SC.getContext('2d'),W=840,H=472;
+  const s=curS;
+  bg(ctx,W,H);
+
+  // Animated background based on hazard level
+  const hc=s.haz==='high'?'#ff3737':'#ffb300';
+  const alpha=0.04+0.01*Math.sin(T*.5);
+  ctx.fillStyle=`${hc}${Math.round(alpha*255).toString(16).padStart(2,'0')}`;
+  ctx.fillRect(0,0,W,H);
+
+  // Draw pump system matching the service
+  const cx=120,cy=250,r=55;
+  drawPump(ctx,cx,cy,r,1.8);
+
+  // Dynamic label
+  txt(ctx,cx,cy-r-30,s.nm,'rgba(255,255,255,0.5)','center',10);
+  txt(ctx,cx,cy-r-18,s.fm,'rgba(0,212,255,0.4)','center',8);
+
+  // Show primary plan visually
+  const pp=s.plans[0];
+  const planColor=pp.bc;
+
+  // Show high-VP indicator if high hazard
+  if(s.haz==='high'){
+    const pulse=0.5+0.5*Math.sin(T*2);
+    ctx.fillStyle=`rgba(255,55,55,${0.12*pulse})`;
+    R(ctx,10,10,W-20,H-20,8);ctx.fill();
+    txt(ctx,W/2,40,'⚠ HIGH HAZARD — '+s.concern,'rgba(255,80,80,0.7)','center',9);
+  } else {
+    txt(ctx,W/2,40,'⚡ '+s.concern,'rgba(255,179,0,0.6)','center',9);
+  }
+
+  // Suction / discharge labels with pipes
+  pipe(ctx,[cx-r-18,cy,55,cy],'#ff6b35',4,true,65);
+  pipe(ctx,[cx+r+18,cy-15,cx+r+18,120,260,120],planColor,4,true,70);
+  txt(ctx,60,cy-7,'SUCT','rgba(255,107,53,0.6)',undefined,8);
+
+  // Plans visual column on right
+  const startY=80;
+  s.plans.forEach((pl,i)=>{
+    const py=startY+i*72;
+    const active=i===0||Math.floor(T*.4)%s.plans.length===i;
+    const alpha2=active?1:0.4;
+    const bca=pl.bc;
+    ctx.globalAlpha=alpha2;
+    comp(ctx,260+i%2*180,py,165,58,`${pl.b}`,bca,'');
+    // pipe to pump
+    if(i===0){
+      pipe(ctx,[260,py+28,cx+r+18,120],'#ff6b35',3,active,60);
+    }
+    ctx.globalAlpha=1;
+    txt(ctx,260+i%2*180+82,py+58+12,pl.pri,bca,'center',7);
+  });
+
+  // Hazard properties
+  const propY=H-60;
+  ctx.fillStyle='rgba(0,0,0,0.5)';R(ctx,20,propY-8,W-40,50,4);ctx.fill();
+  txt(ctx,40,propY+8,`VP: ${s.vp}`,'rgba(0,212,255,0.7)',undefined,8);
+  txt(ctx,200,propY+8,`BP: ${s.bp}`,'rgba(0,212,255,0.6)',undefined,8);
+  txt(ctx,380,propY+8,`Density: ${s.density}`,'rgba(0,212,255,0.5)',undefined,8);
+  txt(ctx,40,propY+24,`Temp: ${s.tp}`,'rgba(0,212,255,0.5)',undefined,8);
+  txt(ctx,250,propY+24,`Plans: ${s.plans.map(p=>p.b).join(' + ')}`,'rgba(255,255,255,0.5)',undefined,8);
+
+  wm(ctx,W,H);
+}
+
+// ════════════════════════════════════════════
+// UI FUNCTIONS
+// ════════════════════════════════════════════
+function selectPlan(id,el){
+  curP=id;
+  document.querySelectorAll('.pitem').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  const p=P[id];
+  // metrics
+  document.getElementById('hpn').textContent='Plan '+p.n;
+  document.getElementById('hpnm').textContent=p.nm;
+  document.getElementById('hparr').textContent='ARR. '+p.arr+(p.arr==='1'?' · SINGLE SEAL':p.arr==='2'?' · DUAL SEAL UNPRESSURIZED':' · DUAL SEAL PRESSURIZED BARRIER');
+  document.getElementById('harr').textContent='ARR.'+p.arr;
+  document.getElementById('hi1').textContent=p.hi[0];document.getElementById('hi1').style.color=p.hic[0];
+  document.getElementById('hi2').textContent=p.hi[1];document.getElementById('hi2').style.color=p.hic[1];
+  document.getElementById('hi3').textContent=p.hi[2];document.getElementById('hi3').style.color=p.hic[2];
+  // metrics row
+  const mc=document.getElementById('mrow');
+  mc.innerHTML=`
+  <div class="mc" style="--c:var(--c1)"><div class="mc-bar" style="background:var(--c1)"></div><div class="mc-lbl">Active Plan</div><div class="mc-val" style="color:var(--c1)">Plan ${p.n}</div><div class="mc-sub">${p.nm.substring(0,22)}</div></div>
+  <div class="mc"><div class="mc-bar" style="background:var(--amber)"></div><div class="mc-lbl">Arrangement</div><div class="mc-val" style="color:var(--amber)">ARR. ${p.arr}</div><div class="mc-sub">${p.arr==='1'?'Single seal':p.arr==='2'?'Dual unpressurized':'Dual pressurized'}</div></div>
+  <div class="mc"><div class="mc-bar" style="background:var(--green)"></div><div class="mc-lbl">Flush Source</div><div class="mc-val" style="color:var(--green);font-size:14px">${p.src}</div><div class="mc-sub">${p.pr.substring(0,20)}</div></div>
+  <div class="mc"><div class="mc-bar" style="background:var(--purple)"></div><div class="mc-lbl">Complexity</div><div class="mc-val" style="color:var(--purple)">${p.cplx}/5</div><div class="mc-sub">${['','Minimal','Low','Medium','High','Maximum'][p.cplx]}</div></div>
+  <div class="mc"><div class="mc-bar" style="background:${p.col==='#00d4ff'?'#1a6bbd':p.col==='#00bfa5'?'#0d7a63':p.col==='#00e676'?'#15803d':p.col==='#c084fc'?'#7c3aed':p.col==='#ff3737'?'#b91c1c':'#b45309'}"></div><div class="mc-lbl">Category</div><div class="mc-val" style="color:${p.col==='#00d4ff'?'#1a6bbd':p.col==='#00bfa5'?'#0d7a63':p.col==='#00e676'?'#15803d':p.col==='#c084fc'?'#7c3aed':p.col==='#ff3737'?'#b91c1c':'#b45309'};font-size:13px">${p.cat.toUpperCase()}</div><div class="mc-sub">API 682</div></div>`;
+  // info tabs
+  document.getElementById('ip-d').textContent=p.desc;
+  document.getElementById('ip-w').innerHTML=`<div class="iwhy"><strong style="color:var(--amber)">Why this plan?</strong><br>${p.why}</div><div class="iwarn"><strong style="color:var(--red)">Avoid when:</strong><br>${p.whynot}</div>`;
+  document.getElementById('ip-u').innerHTML=p.uses.map(u=>`<span class="itag tg">${u}</span>`).join('');
+  document.getElementById('ip-a').innerHTML=p.avoid.map(a=>`<span class="itag tr">${a}</span>`).join('');
+  document.getElementById('ip-hcv').innerHTML=`<strong style="color:var(--amber)">HC Service Notes:</strong><br>${p.hc}`;
+  // params
+  document.getElementById('cbf').style.width=(p.cplx/5*100)+'%';
+  document.getElementById('prws').innerHTML=`
+  <div class="prow"><div class="prk">Pressure</div><div class="prv">${p.pr}</div></div>
+  <div class="prow"><div class="prk">Temperature</div><div class="prv">${p.tp}</div></div>
+  <div class="prow"><div class="prk">Source</div><div class="prv">${p.src}</div></div>`;
+  // gauge
+  const gMap={1:.3,2:.5,3:.62,4:.78,5:.95};
+  gtgt=gMap[p.cplx]||.5;
+}
+
+function itab(nm,btn){
+  document.querySelectorAll('.itab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.ipane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ip-'+nm).classList.add('active');
+}
+
+function selectService(id,el){
+  curS=SRV.find(s=>s.id===id);
+  document.querySelectorAll('.si').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  const s=curS;
+  document.getElementById('stitle').textContent=s.full;
+  document.getElementById('sform').textContent=s.fm;
+  document.getElementById('splans').innerHTML=s.plans.map(p=>`<div class="spc" style="background:${p.bc}22;color:${p.bc};border-color:${p.bc}55">${p.b}</div>`).join('');
+  document.getElementById('hb').style.background=s.hc;
+  // Props
+  document.getElementById('spg').innerHTML=`
+  <div class="sp"><div class="sp-lbl">Vapor Pressure</div><div class="sp-val">${s.vp}</div><div class="sp-sub">at 40°C</div></div>
+  <div class="sp"><div class="sp-lbl">Normal Boiling Pt</div><div class="sp-val">${s.bp}</div></div>
+  <div class="sp"><div class="sp-lbl">Operating Temp</div><div class="sp-val">${s.tp}</div></div>
+  <div class="sp"><div class="sp-lbl">Key Concern</div><div class="sp-val" style="font-size:9px">${s.concern.substring(0,40)}</div></div>`;
+  // Plan table
+  document.getElementById('sprows').innerHTML=s.plans.map(p=>`
+  <div class="spr">
+    <div class="spc2" style="min-width:78px"><span class="sbadge" style="background:${p.bc}22;color:${p.bc};border:1px solid ${p.bc}55">${p.b}</span></div>
+    <div class="spc2" style="min-width:72px"><span class="pchip ${p.pc}">${p.pri}</span></div>
+    <div class="spc2">${p.r}</div>
+  </div>`).join('');
+}
+
+// COMBOS
+function renderCombos(){
+  document.getElementById('cg').innerHTML=COMBOS.map(c=>`
+  <div class="cc">
+    <div class="cc-h">
+      <div class="cc-n">${c.n}</div>
+      <div class="cc-s">${c.s}</div>
+      <div class="cc-i">${c.i}</div>
+    </div>
+    <div class="cc-b">
+      <div class="cc-ps">${c.ps.map((p,i)=>`<span class="ccb" style="background:${c.pc[i]};color:${c.tc[i]};border:1px solid ${c.tc[i]}44">Plan ${p}</span>`).join('')}</div>
+      <div class="cc-d">${c.d}</div>
+      <div class="cc-e">${c.e}</div>
+    </div>
+  </div>`).join('');
+}
+
+// COMPARISON
+function renderCmp(){
+  document.getElementById('cmptbl').innerHTML=`
+  <thead><tr>
+    <th>Plan</th><th>Name</th><th>Arr.</th><th>Pressure Relationship</th><th>Flush Source</th>
+    <th>Cooling</th><th>Dirty</th><th>Dual</th><th>Toxic Service</th><th>HC Application</th>
+  </tr></thead>
+  <tbody>${CMP.map(r=>`<tr>
+    <td><span class="ctid">${r.id}</span></td>
+    <td style="font-size:10px">${r.n}</td>
+    <td><span class="ab ${r.ar==='1'?'a1':r.ar==='2'?'a2':r.ar==='3'?'a3':r.ar==='1/2'?'a2':''}">${r.ar}</span></td>
+    <td style="font-family:var(--mono);font-size:9px">${r.pr}</td>
+    <td style="font-size:10px">${r.src}</td>
+    <td class="${r.co==='No'?'ctr':r.co==='Yes'||r.co==='Best'?'ctg':'ctw'}">${r.co==='No'?'✗':r.co==='Yes'||r.co==='Best'?'✓':r.co}</td>
+    <td class="${r.di==='No'||r.di==='N/A'?'ctr':'ctg'}">${r.di==='No'||r.di==='N/A'?'✗':r.di}</td>
+    <td class="${r.du==='No'||r.du==='N/A'?'ctr':'ctg'}">${r.du==='No'||r.du==='N/A'?'✗':r.du==='Yes'?'✓':r.du}</td>
+    <td style="font-size:9px;color:${r.tx==='ZERO EMISSION'?'var(--green)':r.tx==='Limited'||r.tx==='No'?'var(--red)':'var(--amber)'}">${r.tx}</td>
+    <td style="font-size:9px;color:var(--t2)">${r.hc}</td>
+  </tr>`).join('')}</tbody>`;
+}
+
+// DECISION TREE
+let dtState={node:'q1',path:[]};
+function renderDT(){
+  const n=DT[dtState.node];
+  const pathHtml=dtState.path.map(s=>`<div class="dtps">${s}</div>`).join('');
+  document.getElementById('dtp').innerHTML=pathHtml;
+  if(n.r){
+    document.getElementById('dtb').innerHTML=`
+    <div class="dtres-tag">▶ RECOMMENDED PLAN</div>
+    <div class="dtres-pn">${n.p}</div>
+    <div class="dtres-nm">${n.pn}</div>
+    <div class="dtres-why">${n.w}</div>`;
+  } else {
+    document.getElementById('dtb').innerHTML=`
+    <div class="dtql">Question ${dtState.path.length+1}</div>
+    <div class="dtq">${n.q}</div>
+    <div class="dtopts">${n.opts.map(o=>`<button class="dtopt" onclick="pickDT('${o.n}','${o.t.replace(/'/g,"\\'")}')"> ${o.t}</button>`).join('')}</div>`;
+  }
+}
+function pickDT(next,txt){dtState.path.push(txt.length>55?txt.slice(0,53)+'…':txt);dtState.node=next;renderDT();}
+function resetDT(){dtState={node:'q1',path:[]};renderDT();}
+
+// PAGE NAV
+function showPage(nm,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tnav').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+nm).classList.add('active');
+  btn.classList.add('active');
+  if(nm==='combos')renderCombos();
+  if(nm==='cmp')renderCmp();
+  if(nm==='dtree')renderDT();
+  if(nm==='hcsrv'){
+    // auto-select first service if none selected
+    if(!curS){const fi=document.querySelector('.si');if(fi){fi.click();}}
+  }
+}
+
+// CLOCK + TICKER
+setInterval(()=>{document.getElementById('clk').textContent=new Date().toLocaleTimeString('en-GB',{hour12:false})},1000);
+const TK=['SYS ONLINE · ALL PLANS ACTIVE','Plan 11 · Self-flush · Arrangement 1 · Clean HC standard plan','Plan 23 · API 682 preferred plan for hot clean service · BFW standard','Plan 53A · Zero emission · Cat. III · Benzene · H₂S >500ppm','Plan 52 · OSHA PSM secondary containment · Sour crude service','Plan 72 · N₂ buffer · LPG · Pyrophoric service · Air exclusion critical','Plan 75 · Condensate drain · LPG · Propylene · High VP service','Untreated DCU LPG C3 → Plan 53A + 72 + 62 · Triple barrier MANDATORY','Butene-1 → Plan 11 + 53A + 72 · Polymerization prevention critical','CDU Crude → Plan 11 + 52 + 62 · H₂S secondary containment','Benzene BTX → Plan 11 + 53A + 65 · MACT compliance','Isopentane BP 28°C → Plan 21 + 65 · Cooling essential','FCC Slurry → Plan 32 + 53A + 62 · External flush mandatory'];
+const tkEl=document.getElementById('ticker');
+const tkFull=[...TK,...TK].map(t=>`<span class="ti">◈ <b>${t.split('·')[0]}</b>${t.includes('·')?'·'+t.split('·').slice(1).join('·'):''}</span>`).join('');
+tkEl.innerHTML=tkFull;
+
+// BUILD LISTS
+function buildPlanList(){
+  const el=document.getElementById('plist');
+  let h='';
+  GROUPS.forEach(g=>{
+    h+=`<div class="pglbl">${g.l}</div>`;
+    g.ids.forEach(id=>{
+      const p=P[id];
+      h+=`<div class="pitem${id==='p11'?' active':''}" id="pi-${id}" onclick="selectPlan('${id}',this)">
+        <span class="pid">${p.n}</span>
+        <span class="pnm">${p.nm}</span>
+        <span class="pdot" style="background:${p.col};box-shadow:0 0 5px ${p.col}"></span>
+      </div>`;
+    });
+  });
+  el.innerHTML=h;
+}
+function buildServiceList(){
+  const el=document.getElementById('slist');
+  el.innerHTML=SRV.map(s=>`
+  <div class="si" id="si-${s.id}" onclick="selectService('${s.id}',this)">
+    <span class="si-icon">${s.icon}</span>
+    <div class="si-info"><div class="si-nm">${s.nm}</div><div class="si-fm">${s.fm}</div></div>
+    <span class="si-haz" style="background:${s.hc};box-shadow:0 0 5px ${s.hc}"></span>
+  </div>`).join('');
+}
+
+// INIT
+window.onload=()=>{
+  buildPlanList(); buildServiceList(); initCanvases();
+  selectPlan('p11',document.getElementById('pi-p11'));
+  // Initial metrics render
+  document.getElementById('mrow').innerHTML='';
+  selectPlan('p11',document.getElementById('pi-p11'));
+  renderDT();
+};
+</script>
+</body>
+</html>
